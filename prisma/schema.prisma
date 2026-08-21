@@ -1,0 +1,227 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  FARMER
+  OFFICER
+  ADMIN
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum AlertStatus {
+  PENDING
+  INVESTIGATED
+  RESOLVED
+}
+
+enum InspectionStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+enum ReportStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  INVESTIGATION
+  RESOLVED
+}
+
+model User {
+  id             String          @id @default(uuid())
+  name           String
+  email          String          @unique
+  passwordHash   String
+  role           Role
+  phone          String
+  district       String?
+  state          String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  farms          Farm[]
+  inspections    Inspection[]    @relation("OfficerInspections")
+  diseaseReports DiseaseReport[] @relation("ReportedBy")
+  notifications  Notification[]
+}
+
+model Farm {
+  id                String             @id @default(uuid())
+  name              String
+  farmerId          String
+  farmer            User               @relation(fields: [farmerId], references: [id])
+  lat               Float
+  lng               Float
+  address           String
+  district          String
+  state             String
+  biosecurityScore  Float              @default(100.0)
+  riskLevel         RiskLevel          @default(LOW)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  biosecurityLogs   BiosecurityRecord[]
+  healthLogs        HealthRecord[]
+  riskAssessments   RiskAssessment[]
+  riskAlerts        RiskAlert[]
+  visitors          Visitor[]
+  diseaseReports    DiseaseReport[]
+  inspections       Inspection[]
+}
+
+model BiosecurityRecord {
+  id             String   @id @default(uuid())
+  farmId         String
+  farm           Farm     @relation(fields: [farmId], references: [id])
+  date           DateTime @default(now())
+  disinfection   Boolean  @default(false)
+  footbath       Boolean  @default(false)
+  quarantine     Boolean  @default(false)
+  ppe            Boolean  @default(false)
+  otherChecks    Boolean  @default(false)
+  complianceRate Float
+  photoProofUrl  String?
+  createdAt      DateTime @default(now())
+}
+
+model HealthRecord {
+  id             String             @id @default(uuid())
+  farmId         String
+  farm           Farm               @relation(fields: [farmId], references: [id])
+  date           DateTime           @default(now())
+  totalAnimals   Int
+  healthyCount   Int
+  sickCount      Int
+  mortalityCount Int
+  symptoms       SymptomInRecord[]
+  notes          String?
+  createdAt      DateTime           @default(now())
+}
+
+model Symptom {
+  id           String             @id @default(uuid())
+  name         String             @unique // e.g., "Cough", "Fever", "Sudden Death"
+  records      SymptomInRecord[]
+  reports      SymptomInReport[]
+}
+
+model SymptomInRecord {
+  healthRecordId String
+  healthRecord   HealthRecord @relation(fields: [healthRecordId], references: [id], onDelete: Cascade)
+  symptomId      String
+  symptom        Symptom      @relation(fields: [symptomId], references: [id], onDelete: Cascade)
+
+  @@id([healthRecordId, symptomId])
+}
+
+model RiskAssessment {
+  id        String      @id @default(uuid())
+  farmId    String
+  farm      Farm        @relation(fields: [farmId], references: [id])
+  date      DateTime    @default(now())
+  score     Int // Risk score: 0 - 100
+  level     RiskLevel
+  factors   String // JSON-serialized array of factors (e.g. ["Mortality Spike", "Low Biosecurity"])
+  details   String
+  createdAt DateTime    @default(now())
+  alerts    RiskAlert[]
+}
+
+model RiskAlert {
+  id           String          @id @default(uuid())
+  farmId       String
+  farm         Farm            @relation(fields: [farmId], references: [id])
+  assessmentId String
+  assessment   RiskAssessment  @relation(fields: [assessmentId], references: [id])
+  level        RiskLevel
+  status       AlertStatus     @default(PENDING)
+  message      String
+  createdAt    DateTime        @default(now())
+  inspections  Inspection[]
+}
+
+model Visitor {
+  id         String    @id @default(uuid())
+  farmId     String
+  farm       Farm      @relation(fields: [farmId], references: [id])
+  name       String
+  phone      String
+  purpose    String
+  entryTime  DateTime  @default(now())
+  exitTime   DateTime?
+  qrCode     String
+  status     String    @default("ACTIVE") // "ACTIVE", "EXITED"
+  createdAt  DateTime  @default(now())
+  vehicles   Vehicle[]
+}
+
+model Vehicle {
+  id                 String    @id @default(uuid())
+  visitorId          String
+  visitor            Visitor   @relation(fields: [visitorId], references: [id], onDelete: Cascade)
+  plateNumber        String
+  type               String
+  disinfectionStatus Boolean   @default(false)
+  entryTime          DateTime  @default(now())
+  exitTime           DateTime?
+  createdAt          DateTime  @default(now())
+}
+
+model DiseaseReport {
+  id            String            @id @default(uuid())
+  farmId        String
+  farm          Farm              @relation(fields: [farmId], references: [id])
+  reportedById  String
+  reporter      User              @relation("ReportedBy", fields: [reportedById], references: [id])
+  symptoms      SymptomInReport[]
+  notes         String?
+  photoUrl      String?
+  voiceUrl      String?
+  status        ReportStatus      @default(SUBMITTED)
+  createdAt     DateTime          @default(now())
+}
+
+model SymptomInReport {
+  diseaseReportId String
+  diseaseReport   DiseaseReport @relation(fields: [diseaseReportId], references: [id], onDelete: Cascade)
+  symptomId       String
+  symptom         Symptom       @relation(fields: [symptomId], references: [id], onDelete: Cascade)
+
+  @@id([diseaseReportId, symptomId])
+}
+
+model Inspection {
+  id           String           @id @default(uuid())
+  farmId       String
+  farm         Farm             @relation(fields: [farmId], references: [id])
+  inspectorId  String
+  inspector    User             @relation("OfficerInspections", fields: [inspectorId], references: [id])
+  alertId      String?
+  alert        RiskAlert?       @relation(fields: [alertId], references: [id])
+  date         DateTime
+  notes        String?
+  status       InspectionStatus @default(SCHEDULED)
+  actionsTaken String?
+  createdAt    DateTime         @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  type      String // e.g. "RISK_ALERT", "COMPLIANCE_REMINDER", "GOVERNMENT_ADVISORY"
+  createdAt DateTime @default(now())
+}
