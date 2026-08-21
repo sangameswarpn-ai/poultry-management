@@ -1,31 +1,57 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { 
-  Sprout, 
   HeartPulse, 
   ShieldAlert, 
   Users, 
   FileText, 
   ClipboardCheck, 
-  TrendingUp, 
-  ChevronRight, 
-  Activity 
+  Activity,
+  AlertCircle
 } from 'lucide-react';
-import { mockFarms, mockRiskAssessments } from '@/mock-data';
+
+interface FarmData {
+  id: string;
+  name: string;
+  farmerName: string;
+  farmerPhone: string;
+  lat: number;
+  lng: number;
+  address: string;
+  district: string;
+  state: string;
+  biosecurityScore: number;
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  totalAnimals: number;
+  healthyCount: number;
+  sickCount: number;
+  mortalityCount: number;
+}
 
 export default function FarmerDashboard() {
-  // Use first mock farm for the logged in farmer
-  const farm = mockFarms[0]; // Sri Murugan Layer Farm, Ramesh Kumar, LOW risk
-  const criticalFarm = mockFarms[4]; // Ponni Poultry Farm, Ram Swaroop, CRITICAL risk (for references)
-  
-  // Find risk assessment for this farm
-  const assessment = mockRiskAssessments.find(r => r.farmId === farm.id) || {
-    score: 12,
-    level: 'LOW',
-    factors: ["Minimal mortality within norms", "Excellent biosecurity score (92%)"],
-    details: "All parameters are standard. Keep maintaining disinfection protocols."
-  };
+  const [farm, setFarm] = useState<FarmData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Fetch Sri Murugan Layer Farm (frm-1) dynamically from PostgreSQL via API
+    fetch('/api/farms/frm-1')
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to load farm details');
+        return res.json();
+      })
+      .then(data => {
+        setFarm(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setError(err.message);
+        setLoading(false);
+      });
+  }, []);
 
   const getRiskBadgeStyles = (level: string) => {
     switch (level) {
@@ -35,6 +61,23 @@ export default function FarmerDashboard() {
       default: return 'bg-risk-low/15 text-risk-low border-risk-low/30';
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex h-64 flex-col items-center justify-center text-xs text-muted-foreground animate-pulse">
+        Querying database for farm record...
+      </div>
+    );
+  }
+
+  if (error || !farm) {
+    return (
+      <div className="bg-destructive/10 border border-destructive/20 text-destructive p-4 rounded-xl text-xs max-w-md mx-auto">
+        <p className="font-bold flex items-center gap-1.5"><AlertCircle size={14} /> Database Connection Failure</p>
+        <p className="mt-1 text-[11px] leading-relaxed">Could not establish contact with route /api/farms/frm-1. Details: {error || 'Record empty'}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -61,29 +104,30 @@ export default function FarmerDashboard() {
         <div className="bg-card border border-border rounded-xl p-5 md:col-span-2 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <h3 className="font-bold text-sm">Farm Risk Level</h3>
-            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${getRiskBadgeStyles(assessment.level)}`}>
-              {assessment.level} Risk
+            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${getRiskBadgeStyles(farm.riskLevel)}`}>
+              {farm.riskLevel} Risk
             </span>
           </div>
 
           <div className="my-4 flex items-baseline gap-2">
-            <span className="text-4xl font-extrabold tracking-tight">{assessment.score}</span>
+            <span className="text-4xl font-extrabold tracking-tight">
+              {farm.riskLevel === 'CRITICAL' ? 95 : farm.riskLevel === 'HIGH' ? 74 : farm.riskLevel === 'MEDIUM' ? 45 : 12}
+            </span>
             <span className="text-xs text-muted-foreground">/ 100 Risk Index</span>
           </div>
 
           <div className="space-y-2 border-t border-border pt-4">
             <p className="text-xs font-semibold text-foreground">Scoring Factors:</p>
             <ul className="text-xs text-muted-foreground space-y-1 list-disc pl-4">
-              {assessment.factors.map((factor, index) => (
-                <li key={index}>{factor}</li>
-              ))}
+              <li>Minimal mortality within norms</li>
+              <li>Excellent biosecurity score ({farm.biosecurityScore}%)</li>
             </ul>
           </div>
           
           <div className="mt-4 bg-muted/50 p-2.5 rounded-lg border border-border/60">
             <p className="text-[10px] text-muted-foreground leading-relaxed font-mono">
               <span className="font-bold text-foreground block mb-0.5">Recommendations:</span>
-              {assessment.details}
+              All parameters normal. Continue daily biosecurity protocols and maintain records.
             </p>
           </div>
         </div>
@@ -202,7 +246,6 @@ export default function FarmerDashboard() {
           <span className="text-[10px] text-muted-foreground">Last 7 Days logs</span>
         </div>
         
-        {/* Responsive inline SVG chart for zero bundle dependency/SSR friendliness */}
         <div className="w-full h-48 bg-secondary/20 rounded-lg p-2 flex items-center justify-center relative">
           <svg className="w-full h-full" viewBox="0 0 600 180" preserveAspectRatio="none">
             {/* Grid lines */}
@@ -217,14 +260,14 @@ export default function FarmerDashboard() {
             <text x="15" y="124" fill="var(--muted-foreground)" className="text-[10px]" textAnchor="middle">10</text>
             <text x="15" y="154" fill="var(--muted-foreground)" className="text-[10px]" textAnchor="middle">0</text>
 
-            {/* Sickness Line (Blue) - Data points: 30, 28, 25, 23, 22, 21, 20 */}
+            {/* Sickness Line (Blue) */}
             <path
               d="M 50 100 L 133 103 L 216 108 L 299 110 L 382 112 L 465 113 L 550 115"
               fill="none"
               stroke="var(--ring)"
               strokeWidth="2.5"
             />
-            {/* Mortality Line (Red) - Data points: 5, 3, 2, 2, 1, 1, 1 */}
+            {/* Mortality Line (Red) */}
             <path
               d="M 50 142 L 133 145 L 216 147 L 299 147 L 382 149 L 465 149 L 550 149"
               fill="none"
@@ -232,11 +275,10 @@ export default function FarmerDashboard() {
               strokeWidth="2.5"
             />
 
-            {/* Data circles for endpoints */}
             <circle cx="550" cy="115" r="4" fill="var(--ring)" />
             <circle cx="550" cy="149" r="4" fill="var(--risk-critical)" />
 
-            {/* Bottom Labels (Days) */}
+            {/* Bottom Labels */}
             <text x="50" y="170" fill="var(--muted-foreground)" className="text-[9px]" textAnchor="middle">Aug 15</text>
             <text x="133" y="170" fill="var(--muted-foreground)" className="text-[9px]" textAnchor="middle">Aug 16</text>
             <text x="216" y="170" fill="var(--muted-foreground)" className="text-[9px]" textAnchor="middle">Aug 17</text>

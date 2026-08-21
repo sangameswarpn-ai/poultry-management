@@ -1,14 +1,51 @@
 'use client';
 
-import { useState } from 'react';
-import { Search, Filter, ShieldAlert, CheckCircle, Landmark, Building2 } from 'lucide-react';
-import { mockFarms } from '@/mock-data';
+import { useState, useEffect } from 'react';
+import { Search, Filter, ShieldAlert, CheckCircle, Landmark, Building2, AlertCircle } from 'lucide-react';
+
+interface Farm {
+  id: string;
+  name: string;
+  farmerId: string;
+  farmerName: string;
+  farmerPhone: string;
+  lat: number;
+  lng: number;
+  address: string;
+  district: string;
+  state: string;
+  biosecurityScore: number;
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  totalAnimals: number;
+}
 
 export default function AdminFarmsPage() {
+  const [farms, setFarms] = useState<Farm[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [districtFilter, setDistrictFilter] = useState('ALL');
 
-  const filteredFarms = mockFarms.filter(f => {
+  useEffect(() => {
+    // Fetch registered farms from database via API
+    fetch('/api/farms')
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to load registered farms database');
+        return res.json();
+      })
+      .then(data => {
+        setFarms(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setError(err.message);
+        setLoading(false);
+      });
+  }, []);
+
+  const filteredFarms = farms.filter(f => {
     const matchesSearch = 
       f.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       f.farmerName.toLowerCase().includes(searchTerm.toLowerCase());
@@ -65,53 +102,64 @@ export default function AdminFarmsPage() {
         </div>
       </div>
 
-      {/* Table listing */}
-      <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm text-xs">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-border bg-secondary/30 text-muted-foreground font-semibold">
-                <th className="p-4">Farm Details</th>
-                <th className="p-4">Farmer Operator</th>
-                <th className="p-4">District</th>
-                <th className="p-4">Biosecurity Score</th>
-                <th className="p-4">Risk Level</th>
-                <th className="p-4 text-right">Flock Size</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/60">
-              {filteredFarms.map((farm) => (
-                <tr key={farm.id} className="hover:bg-secondary/15">
-                  <td className="p-4">
-                    <div className="flex items-center gap-2">
-                      <Building2 size={14} className="text-primary shrink-0" />
-                      <div>
-                        <p className="font-bold text-foreground">{farm.name}</p>
-                        <p className="text-[10px] text-muted-foreground">ID: {farm.id}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <p className="font-semibold text-foreground">{farm.farmerName}</p>
-                    <p className="text-[10px] text-muted-foreground">{farm.farmerPhone}</p>
-                  </td>
-                  <td className="p-4 font-medium text-muted-foreground">{farm.district}</td>
-                  <td className="p-4 font-bold text-primary">{farm.biosecurityScore}%</td>
-                  <td className="p-4">
-                    <span className={`font-extrabold flex items-center gap-1 ${getRiskColor(farm.riskLevel)}`}>
-                      <span className="w-2 h-2 rounded-full bg-current"></span>
-                      {farm.riskLevel}
-                    </span>
-                  </td>
-                  <td className="p-4 text-right font-mono font-bold text-foreground">
-                    {farm.totalAnimals.toLocaleString()}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {loading ? (
+        <div className="flex h-64 flex-col items-center justify-center text-xs text-muted-foreground animate-pulse">
+          Querying state database...
         </div>
-      </div>
+      ) : error ? (
+        <div className="bg-destructive/10 border border-destructive/20 text-destructive p-4 rounded-xl text-xs max-w-md mx-auto">
+          <p className="font-bold flex items-center gap-1.5"><AlertCircle size={14} /> Database Connection Failure</p>
+          <p className="mt-1 text-[11px] leading-relaxed">Could not establish contact with route /api/farms. Details: {error}</p>
+        </div>
+      ) : (
+        /* Table listing */
+        <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm text-xs">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-border bg-secondary/30 text-muted-foreground font-semibold">
+                  <th className="p-4">Farm Details</th>
+                  <th className="p-4">Farmer Operator</th>
+                  <th className="p-4">District</th>
+                  <th className="p-4">Biosecurity Score</th>
+                  <th className="p-4">Risk Level</th>
+                  <th className="p-4 text-right">Flock Size</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/60">
+                {filteredFarms.map((farm) => (
+                  <tr key={farm.id} className="hover:bg-secondary/15">
+                    <td className="p-4">
+                      <div className="flex items-center gap-2">
+                        <Building2 size={14} className="text-primary shrink-0" />
+                        <div>
+                          <p className="font-bold text-foreground">{farm.name}</p>
+                          <p className="text-[10px] text-muted-foreground">ID: {farm.id}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <p className="font-semibold text-foreground">{farm.farmerName}</p>
+                      <p className="text-[10px] text-muted-foreground">{farm.farmerPhone}</p>
+                    </td>
+                    <td className="p-4 font-medium text-muted-foreground">{farm.district}</td>
+                    <td className="p-4 font-bold text-primary">{farm.biosecurityScore}%</td>
+                    <td className="p-4">
+                      <span className={`font-extrabold flex items-center gap-1 ${getRiskColor(farm.riskLevel)}`}>
+                        <span className="w-2 h-2 rounded-full bg-current"></span>
+                        {farm.riskLevel}
+                      </span>
+                    </td>
+                    <td className="p-4 text-right font-mono font-bold text-foreground">
+                      {farm.totalAnimals.toLocaleString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
     </div>
   );
