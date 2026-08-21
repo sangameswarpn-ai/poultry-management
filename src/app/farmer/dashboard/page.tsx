@@ -11,6 +11,7 @@ import {
   Activity,
   AlertCircle
 } from 'lucide-react';
+import { useTranslation } from '@/hooks/use-translation';
 
 interface FarmData {
   id: string;
@@ -31,12 +32,13 @@ interface FarmData {
 }
 
 export default function FarmerDashboard() {
+  const { t } = useTranslation();
   const [farm, setFarm] = useState<FarmData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Fetch Sri Murugan Layer Farm (frm-1) dynamically from PostgreSQL via API
+    // Fetch Sri Murugan Layer Farm (frm-1) dynamically
     fetch('/api/farms/frm-1')
       .then(res => {
         if (!res.ok) throw new Error('Failed to load farm details');
@@ -55,10 +57,19 @@ export default function FarmerDashboard() {
 
   const getRiskBadgeStyles = (level: string) => {
     switch (level) {
-      case 'CRITICAL': return 'bg-risk-critical/15 text-risk-critical border-risk-critical/30';
-      case 'HIGH': return 'bg-risk-high/15 text-risk-high border-risk-high/30';
-      case 'MEDIUM': return 'bg-risk-medium/15 text-risk-medium border-risk-medium/30';
-      default: return 'bg-risk-low/15 text-risk-low border-risk-low/30';
+      case 'CRITICAL': return 'bg-risk-critical text-white border-risk-critical';
+      case 'HIGH': return 'bg-risk-high text-white border-risk-high';
+      case 'MEDIUM': return 'bg-risk-medium text-foreground border-risk-medium';
+      default: return 'bg-risk-low text-white border-risk-low';
+    }
+  };
+
+  const getRiskLabel = (level: string) => {
+    switch (level) {
+      case 'CRITICAL': return t.critical;
+      case 'HIGH': return t.high;
+      case 'MEDIUM': return t.medium;
+      default: return t.low;
     }
   };
 
@@ -83,16 +94,16 @@ export default function FarmerDashboard() {
     <div className="space-y-6">
       
       {/* Welcome Banner */}
-      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between border-b border-border pb-4">
+      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between border-b border-border pb-4 bg-gradient-to-r from-emerald-500/10 to-amber-500/5 p-4 rounded-xl border">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Vanakkam, {farm.farmerName}!</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">{t.welcome}, {farm.farmerName}! 👋</h2>
           <p className="text-xs text-muted-foreground">
-            Monitoring profile for <span className="font-semibold text-foreground">{farm.name}</span> (ID: {farm.id})
+            {t.monitoringProfile} <span className="font-bold text-primary">{farm.name}</span> (ID: {farm.id})
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground font-medium">District Grid:</span>
-          <span className="bg-secondary text-foreground text-xs font-semibold px-2.5 py-1 rounded-md border border-border">
+          <span className="text-xs text-muted-foreground font-semibold">{t.districtGrid}:</span>
+          <span className="bg-primary text-primary-foreground text-xs font-bold px-3 py-1.5 rounded-lg border border-primary shadow-sm shadow-primary/20">
             {farm.district}, {farm.state}
           </span>
         </div>
@@ -101,54 +112,58 @@ export default function FarmerDashboard() {
       {/* Grid: Health Status & Risk Card */}
       <div className="grid gap-6 md:grid-cols-3">
         {/* Risk Assessment Card */}
-        <div className="bg-card border border-border rounded-xl p-5 md:col-span-2 flex flex-col justify-between">
+        <div className="bg-card border border-border rounded-xl p-5 md:col-span-2 flex flex-col justify-between colorful-card-primary relative overflow-hidden">
+          <div className="absolute right-0 top-0 w-24 h-24 bg-gradient-to-bl from-emerald-500/10 to-transparent rounded-bl-full pointer-events-none" />
+          
           <div className="flex items-center justify-between">
-            <h3 className="font-bold text-sm">Farm Risk Level</h3>
-            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${getRiskBadgeStyles(farm.riskLevel)}`}>
-              {farm.riskLevel} Risk
+            <h3 className="font-bold text-sm text-foreground">{t.farmRiskLevel}</h3>
+            <span className={`px-3 py-1 rounded-full text-xs font-bold border shadow-sm ${getRiskBadgeStyles(farm.riskLevel)}`}>
+              {getRiskLabel(farm.riskLevel)}
             </span>
           </div>
 
           <div className="my-4 flex items-baseline gap-2">
-            <span className="text-4xl font-extrabold tracking-tight">
+            <span className="text-4xl font-extrabold tracking-tight text-foreground">
               {farm.riskLevel === 'CRITICAL' ? 95 : farm.riskLevel === 'HIGH' ? 74 : farm.riskLevel === 'MEDIUM' ? 45 : 12}
             </span>
             <span className="text-xs text-muted-foreground">/ 100 Risk Index</span>
           </div>
 
           <div className="space-y-2 border-t border-border pt-4">
-            <p className="text-xs font-semibold text-foreground">Scoring Factors:</p>
+            <p className="text-xs font-bold text-foreground">{t.scoringFactors}:</p>
             <ul className="text-xs text-muted-foreground space-y-1 list-disc pl-4">
               <li>Minimal mortality within norms</li>
               <li>Excellent biosecurity score ({farm.biosecurityScore}%)</li>
             </ul>
           </div>
           
-          <div className="mt-4 bg-muted/50 p-2.5 rounded-lg border border-border/60">
-            <p className="text-[10px] text-muted-foreground leading-relaxed font-mono">
-              <span className="font-bold text-foreground block mb-0.5">Recommendations:</span>
+          <div className="mt-4 bg-secondary/40 p-3 rounded-lg border border-border">
+            <p className="text-[10px] text-secondary-foreground leading-relaxed font-mono">
+              <span className="font-bold block mb-0.5">{t.recommendations}:</span>
               All parameters normal. Continue daily biosecurity protocols and maintain records.
             </p>
           </div>
         </div>
 
         {/* Live Counters */}
-        <div className="bg-card border border-border rounded-xl p-5 flex flex-col justify-between">
-          <h3 className="font-bold text-sm">Daily Flock Metrics</h3>
+        <div className="bg-card border border-border rounded-xl p-5 flex flex-col justify-between colorful-card-accent relative overflow-hidden">
+          <div className="absolute right-0 top-0 w-24 h-24 bg-gradient-to-bl from-amber-500/10 to-transparent rounded-bl-full pointer-events-none" />
+          
+          <h3 className="font-bold text-sm text-foreground">{t.dailyFlockMetrics}</h3>
           
           <div className="space-y-4 my-4">
-            <div className="flex items-center justify-between border-b border-border pb-2">
+            <div className="flex items-center justify-between border-b border-border/60 pb-2">
               <div className="flex items-center gap-2">
                 <HeartPulse size={16} className="text-primary" />
-                <span className="text-xs text-muted-foreground">Total Flock Size</span>
+                <span className="text-xs text-muted-foreground">{t.totalFlockSize}</span>
               </div>
-              <span className="text-sm font-bold">{farm.totalAnimals.toLocaleString()}</span>
+              <span className="text-sm font-bold text-foreground">{farm.totalAnimals.toLocaleString()}</span>
             </div>
             
-            <div className="flex items-center justify-between border-b border-border pb-2">
+            <div className="flex items-center justify-between border-b border-border/60 pb-2">
               <div className="flex items-center gap-2">
-                <ShieldAlert size={16} className="text-risk-medium" />
-                <span className="text-xs text-muted-foreground">Sick Birds Today</span>
+                <ShieldAlert size={16} className="text-risk-medium animate-pulse" />
+                <span className="text-xs text-muted-foreground">{t.sickBirdsToday}</span>
               </div>
               <span className="text-sm font-bold text-risk-medium">{farm.sickCount}</span>
             </div>
@@ -156,97 +171,97 @@ export default function FarmerDashboard() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <ShieldAlert size={16} className="text-risk-critical" />
-                <span className="text-xs text-muted-foreground">Deaths Today</span>
+                <span className="text-xs text-muted-foreground">{t.deathsToday}</span>
               </div>
               <span className="text-sm font-bold text-risk-critical">{farm.mortalityCount}</span>
             </div>
           </div>
 
-          <div className="bg-secondary p-3 rounded-lg border border-border text-center">
-            <span className="text-[10px] text-muted-foreground block">Today's Biosecurity Compliance</span>
-            <span className="text-lg font-extrabold text-primary">{farm.biosecurityScore}%</span>
+          <div className="bg-primary/10 p-3 rounded-lg border border-primary/20 text-center shadow-inner">
+            <span className="text-[10px] text-primary font-bold block">{t.todayCompliance}</span>
+            <span className="text-xl font-extrabold text-primary">{farm.biosecurityScore}%</span>
           </div>
         </div>
       </div>
 
       {/* Quick Action Touches */}
       <div>
-        <h3 className="text-sm font-bold mb-3">Daily Tasks & Operations</h3>
+        <h3 className="text-sm font-bold mb-3 text-foreground">{t.dailyTasks}</h3>
         <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
           <Link
             href="/farmer/biosecurity"
-            className="bg-card border border-border hover:border-primary p-4 rounded-xl flex flex-col items-center text-center justify-between transition-colors cursor-pointer group"
+            className="bg-card border border-border hover:border-primary p-4 rounded-xl flex flex-col items-center text-center justify-between transition-all cursor-pointer group shadow-sm hover:shadow-md"
           >
-            <div className="bg-primary/10 text-primary p-2.5 rounded-lg mb-2">
+            <div className="bg-primary/10 text-primary p-2.5 rounded-xl mb-2 group-hover:scale-110 transition-transform">
               <ClipboardCheck size={20} />
             </div>
             <div>
-              <p className="text-xs font-bold">Biosecurity Checklist</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">Disinfection log</p>
+              <p className="text-xs font-bold text-foreground">Biosecurity Checklist</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">{t.biosecurityDesc}</p>
             </div>
             <span className="text-[10px] text-primary font-bold mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              Log Task →
+              {t.logTask} →
             </span>
           </Link>
 
           <Link
             href="/farmer/health"
-            className="bg-card border border-border hover:border-primary p-4 rounded-xl flex flex-col items-center text-center justify-between transition-colors cursor-pointer group"
+            className="bg-card border border-border hover:border-primary p-4 rounded-xl flex flex-col items-center text-center justify-between transition-all cursor-pointer group shadow-sm hover:shadow-md"
           >
-            <div className="bg-red-500/10 text-red-600 dark:text-red-400 p-2.5 rounded-lg mb-2">
+            <div className="bg-red-500/10 text-red-600 dark:text-red-400 p-2.5 rounded-xl mb-2 group-hover:scale-110 transition-transform">
               <HeartPulse size={20} />
             </div>
             <div>
-              <p className="text-xs font-bold">Log Sickness/Deaths</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">Flock health inputs</p>
+              <p className="text-xs font-bold text-foreground">Log Sickness/Deaths</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">{t.logSicknessDesc}</p>
             </div>
             <span className="text-[10px] text-primary font-bold mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              Add Log →
+              {t.addLog} →
             </span>
           </Link>
 
           <Link
             href="/farmer/reports"
-            className="bg-card border border-border hover:border-primary p-4 rounded-xl flex flex-col items-center text-center justify-between transition-colors cursor-pointer group"
+            className="bg-card border border-border hover:border-primary p-4 rounded-xl flex flex-col items-center text-center justify-between transition-all cursor-pointer group shadow-sm hover:shadow-md"
           >
-            <div className="bg-orange-500/10 text-orange-600 dark:text-orange-400 p-2.5 rounded-lg mb-2">
+            <div className="bg-orange-500/10 text-orange-600 dark:text-orange-400 p-2.5 rounded-xl mb-2 group-hover:scale-110 transition-transform">
               <FileText size={20} />
             </div>
             <div>
-              <p className="text-xs font-bold">Report Suspected Disease</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">Vet alert trigger</p>
+              <p className="text-xs font-bold text-foreground">Report Suspected Disease</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">{t.reportSuspectDesc}</p>
             </div>
             <span className="text-[10px] text-primary font-bold mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              Submit →
+              {t.submit} →
             </span>
           </Link>
 
           <Link
             href="/farmer/visitors"
-            className="bg-card border border-border hover:border-primary p-4 rounded-xl flex flex-col items-center text-center justify-between transition-colors cursor-pointer group"
+            className="bg-card border border-border hover:border-primary p-4 rounded-xl flex flex-col items-center text-center justify-between transition-all cursor-pointer group shadow-sm hover:shadow-md"
           >
-            <div className="bg-blue-500/10 text-blue-600 dark:text-blue-400 p-2.5 rounded-lg mb-2">
+            <div className="bg-blue-500/10 text-blue-600 dark:text-blue-400 p-2.5 rounded-xl mb-2 group-hover:scale-110 transition-transform">
               <Users size={20} />
             </div>
             <div>
-              <p className="text-xs font-bold">Log Visitor QR Code</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">Contact tracing scan</p>
+              <p className="text-xs font-bold text-foreground">Log Visitor QR Code</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">{t.logVisitorDesc}</p>
             </div>
             <span className="text-[10px] text-primary font-bold mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              Scan now →
+              {t.scanNow} →
             </span>
           </Link>
         </div>
       </div>
 
       {/* SVG Historical Chart */}
-      <div className="bg-card border border-border rounded-xl p-5">
+      <div className="bg-card border border-border rounded-xl p-5 shadow-sm">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-sm">Flock Mortality & Sickness Curve</h3>
-          <span className="text-[10px] text-muted-foreground">Last 7 Days logs</span>
+          <h3 className="font-bold text-sm text-foreground">{t.sicknessCurveTitle}</h3>
+          <span className="text-[10px] text-muted-foreground">{t.last7Days}</span>
         </div>
         
-        <div className="w-full h-48 bg-secondary/20 rounded-lg p-2 flex items-center justify-center relative">
+        <div className="w-full h-48 bg-secondary/10 rounded-lg p-2 flex items-center justify-center relative">
           <svg className="w-full h-full" viewBox="0 0 600 180" preserveAspectRatio="none">
             {/* Grid lines */}
             <line x1="50" y1="20" x2="550" y2="20" stroke="var(--border)" strokeDasharray="4 4" />
@@ -288,9 +303,9 @@ export default function FarmerDashboard() {
             <text x="550" y="170" fill="var(--muted-foreground)" className="text-[9px]" textAnchor="middle">Today</text>
           </svg>
         </div>
-        <div className="flex gap-4 mt-2 justify-end text-[10px] font-semibold">
+        <div className="flex gap-4 mt-2 justify-end text-[10px] font-bold">
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+            <span className="w-2.5 h-2.5 rounded-full bg-primary"></span>
             <span>Sick Count</span>
           </div>
           <div className="flex items-center gap-1.5">

@@ -1,10 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Settings, Languages, Volume2, Eye, ShieldCheck, Check } from 'lucide-react';
+import { Settings, Languages, Volume2, Eye, Check, Save } from 'lucide-react';
+import { useLanguage, LanguageCode } from '@/components/language-provider';
+import { useTranslation } from '@/hooks/use-translation';
 
 export default function FarmerSettingsPage() {
-  const [language, setLanguage] = useState<'en' | 'ta' | 'hi'>('en');
+  const { language, setLanguage } = useLanguage();
+  const { t } = useTranslation();
+  
   const [voiceGuidance, setVoiceGuidance] = useState(false);
   const [highContrast, setHighContrast] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -15,64 +19,94 @@ export default function FarmerSettingsPage() {
     setTimeout(() => setSaved(false), 3000);
   };
 
-  // Translations dictionary for demo preview
-  const translations = {
+  const languagesList: Array<{ code: LanguageCode; label: string }> = [
+    { code: 'en', label: 'English' },
+    { code: 'ta', label: 'தமிழ் (Tamil)' },
+    { code: 'ml', label: 'മലയാളം (Malayalam)' },
+    { code: 'hi', label: 'हिन्दी (Hindi)' },
+    { code: 'mr', label: 'मराठी (Marathi)' },
+    { code: 'gu', label: 'ગુજરાતી (Gujarati)' }
+  ];
+
+  // Specific local translations for Settings page labels per language
+  const settingsLabels: Record<LanguageCode, any> = {
     en: {
       title: "Settings & Accessibility",
-      desc: "Customize UI settings, language translation nodes, and offline synchronization schedules",
-      langSelect: "Portal Interface Language",
+      desc: "Customize UI settings, language translation nodes, and accessibility toggles",
+      langSelect: "Select Portal Language",
       voiceOption: "Enable Voice Guidance Instructions",
       voiceDesc: "Provides spoken notifications for daily biosecurity checklists.",
       contrastOption: "High Contrast Mode",
       contrastDesc: "Increases text visibility for outdoor sunlight operation.",
-      previewTitle: "Live Translation Preview (Farmer Dashboard)",
-      dashboardLabel: "Dashboard Overview",
-      mortalityLabel: "Deaths Today",
-      sickLabel: "Sick Animals",
-      scoreLabel: "Biosecurity Compliance Rate",
+      previewTitle: "Live Translation Preview",
       saveBtn: "Save Preferences"
     },
     ta: {
       title: "அமைப்புகள் & அணுகல் வசதி",
-      desc: "வலைதள அமைப்புகள், மொழி பெயர்ப்பு மற்றும் ஆஃப்லைன் ஒத்திசைவு அட்டவணைகளைத் தனிப்பயனாக்குங்கள்",
-      langSelect: "வலைதள இடைமுக மொழி",
+      desc: "வலைதள அமைப்புகள், மொழி பெயர்ப்பு மற்றும் அணுகல் தேவைகளைத் தனிப்பயனாக்குங்கள்",
+      langSelect: "வலைதள மொழியைத் தேர்ந்தெடுக்கவும்",
       voiceOption: "குரல் வழிகாட்டுதல் வழிமுறைகளை இயக்கு",
       voiceDesc: "தினசரி உயிரி பாதுகாப்பு சரிபார்ப்பு பட்டியல்களுக்கான அறிவிப்புகளை குரல் மூலம் வழங்குகிறது.",
-      contrastOption: "அதிக மாறுபட்ட வண்ணம் (High Contrast Mode)",
+      contrastOption: "அதிக மாறுபட்ட வண்ணம் (High Contrast)",
       contrastDesc: "வெளியே சூரிய ஒளியில் பார்க்கும்போது உரை தெரிவுநிலையை அதிகரிக்கிறது.",
-      previewTitle: "நேரடி மொழிபெயர்ப்பு முன்னோட்டம் (விவசாயி முகப்பு)",
-      dashboardLabel: "கண்காணிப்பு முகப்பு",
-      mortalityLabel: "இன்றைய இறப்புகள்",
-      sickLabel: "நோய்வாய்ப்பட்ட பறவைகள்",
-      scoreLabel: "உயிரி பாதுகாப்பு இணக்க வீதம்",
+      previewTitle: "நேரடி மொழிபெயர்ப்பு முன்னோட்டம்",
       saveBtn: "விருப்பங்களைச் சேமி"
+    },
+    ml: {
+      title: "ക്രമീകരണങ്ങൾ",
+      desc: "ഇന്റർഫേസ് ക്രമീകരണങ്ങളും ഭാഷാ വിവർത്തനങ്ങളും ക്രമീകരിക്കുക",
+      langSelect: "ഭാഷ തിരഞ്ഞെടുക്കുക",
+      voiceOption: "വോയിസ് ഗൈഡൻസ് പ്രവർത്തനക്ഷമമാക്കുക",
+      voiceDesc: "ദിനചര്യകൾക്കായി ഓഡിയോ സഹായം നൽകുന്നു.",
+      contrastOption: "ഹൈ കോൺട്രാസ്റ്റ് മോഡ്",
+      contrastDesc: "വെളിച്ചമുള്ള സാഹചര്യങ്ങളിൽ കൂടുതൽ വ്യക്തത നൽകുന്നു.",
+      previewTitle: "തത്സമയ വിവർത്തന പരീക്ഷണ രൂപം",
+      saveBtn: "തിരഞ്ഞെടുപ്പുകൾ സംരക്ഷിക്കുക"
     },
     hi: {
       title: "सेटिंग्स और सुलभता",
-      desc: "इंटरफ़ेस सेटिंग्स, भाषा अनुवाद नोड्स और ऑफ़लाइन समन्वयन को अनुकूलित करें",
-      langSelect: "पोर्टल भाषा",
+      desc: "इंटरफ़ेस सेटिंग्स, भाषा अनुवाद नोड्स और सुलभता प्राथमिकताओं को अनुकूलित करें",
+      langSelect: "पोर्टल भाषा चुनें",
       voiceOption: "आवाज मार्गदर्शन निर्देश सक्षम करें",
       voiceDesc: "दैनिक जैव-सुरक्षा चेकलिस्ट के लिए मौखिक सूचनाएं प्रदान करता है।",
       contrastOption: "उच्च कंट्रास्ट मोड",
       contrastDesc: "बाहरी धूप में काम करने के लिए टेक्स्ट की दृश्यता बढ़ाता है।",
-      previewTitle: "लाइव अनुवाद पूर्वावलोकन (किसान डैशबोर्ड)",
-      dashboardLabel: "डैशबोर्ड अवलोकन",
-      mortalityLabel: "आज की मृत्यु संख्या",
-      sickLabel: "बीमार जानवर",
-      scoreLabel: "जैव-सुरक्षा अनुपालन दर",
+      previewTitle: "लाइव अनुवाद पूर्वावलोकन",
       saveBtn: "प्राथमिकताएं सहेजें"
+    },
+    mr: {
+      title: "सेटिंग्ज आणि सुलभता",
+      desc: "भाषा निवड आणि सुलभता प्राधान्ये बदला",
+      langSelect: "भाषा निवडा",
+      voiceOption: "आवाज मार्गदर्शन सक्षम करा",
+      voiceDesc: "चेकलिस्टसाठी ऑडिओ सूचना प्रदान करते.",
+      contrastOption: "हाय कॉन्ट्रास्ट मोड",
+      contrastDesc: "सूर्यप्रकाशात अधिक स्पष्ट दिसण्यासाठी मदत करते.",
+      previewTitle: "थेट अनुवाद पूर्वावलोकन",
+      saveBtn: "बदल जतन करा"
+    },
+    gu: {
+      title: "સેટિંગ્સ અને સુલભતા",
+      desc: "ઇન્ટરફેસ સેટિંગ્સ અને ભાષા પસંદગીઓ કસ્ટમાઇઝ કરો",
+      langSelect: "ભાષા પસંદ કરો",
+      voiceOption: "વોઇસ ગાઇડન્સ સક્ષમ કરો",
+      voiceDesc: "દૈનિક ચેકલિસ્ટ માટે ઓડિયો સૂચનાઓ આપે છે.",
+      contrastOption: "હાઇ કોન્ટ્રાસ્ટ મોડ",
+      contrastDesc: "સૂર્યપ્રકાશમાં ટેક્સ્ટની દૃશ્યતા વધારે છે.",
+      previewTitle: "લાઈવ અનુવાદ પૂર્વાવલોકન",
+      saveBtn: "સેટિંગ્સ સાચવો"
     }
   };
 
-  const t = translations[language];
+  const labels = settingsLabels[language] || settingsLabels.en;
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
       
       {/* Title */}
       <div className="border-b border-border pb-4">
-        <h2 className="text-xl font-bold tracking-tight">{t.title}</h2>
-        <p className="text-xs text-muted-foreground">{t.desc}</p>
+        <h2 className="text-xl font-bold tracking-tight text-foreground">{labels.title}</h2>
+        <p className="text-xs text-muted-foreground">{labels.desc}</p>
       </div>
 
       {saved && (
@@ -82,27 +116,23 @@ export default function FarmerSettingsPage() {
       )}
 
       {/* Settings Panel */}
-      <form onSubmit={handleSave} className="bg-card border border-border rounded-2xl p-6 space-y-6">
+      <form onSubmit={handleSave} className="bg-card border border-border rounded-2xl p-6 space-y-6 text-xs colorful-card-primary">
         
         {/* Language switcher */}
         <div className="space-y-3">
           <label className="text-xs font-bold text-muted-foreground flex items-center gap-2">
             <Languages size={16} className="text-primary" />
-            {t.langSelect}
+            {labels.langSelect}
           </label>
-          <div className="grid grid-cols-3 gap-3 text-xs font-bold">
-            {[
-              { code: 'en', label: 'English' },
-              { code: 'ta', label: 'தமிழ் (Tamil)' },
-              { code: 'hi', label: 'हिन्दी (Hindi)' }
-            ].map((lang) => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs font-bold">
+            {languagesList.map((lang) => (
               <button
                 type="button"
                 key={lang.code}
-                onClick={() => setLanguage(lang.code as any)}
-                className={`p-3 border rounded-xl transition-colors cursor-pointer text-center ${
+                onClick={() => setLanguage(lang.code)}
+                className={`p-3 border rounded-xl transition-all cursor-pointer text-center hover:scale-105 active:scale-95 ${
                   language === lang.code
-                    ? 'border-primary bg-primary/5 text-primary'
+                    ? 'border-primary bg-primary/10 text-primary shadow-sm'
                     : 'border-border bg-card text-muted-foreground hover:bg-secondary/40'
                 }`}
               >
@@ -123,10 +153,10 @@ export default function FarmerSettingsPage() {
           <div className="flex items-start justify-between gap-4 p-3 border border-border rounded-xl">
             <div className="space-y-0.5">
               <label htmlFor="voice" className="text-xs font-bold text-foreground cursor-pointer">
-                {t.voiceOption}
+                {labels.voiceOption}
               </label>
               <p className="text-[10px] text-muted-foreground leading-relaxed">
-                {t.voiceDesc}
+                {labels.voiceDesc}
               </p>
             </div>
             <input
@@ -134,7 +164,7 @@ export default function FarmerSettingsPage() {
               id="voice"
               checked={voiceGuidance}
               onChange={e => setVoiceGuidance(e.target.checked)}
-              className="w-5 h-5 rounded text-primary focus:ring-primary mt-1 shrink-0"
+              className="w-5 h-5 rounded text-primary focus:ring-primary mt-1 shrink-0 cursor-pointer"
             />
           </div>
 
@@ -142,10 +172,10 @@ export default function FarmerSettingsPage() {
           <div className="flex items-start justify-between gap-4 p-3 border border-border rounded-xl">
             <div className="space-y-0.5">
               <label htmlFor="contrast" className="text-xs font-bold text-foreground cursor-pointer">
-                {t.contrastOption}
+                {labels.contrastOption}
               </label>
               <p className="text-[10px] text-muted-foreground leading-relaxed">
-                {t.contrastDesc}
+                {labels.contrastDesc}
               </p>
             </div>
             <input
@@ -153,7 +183,7 @@ export default function FarmerSettingsPage() {
               id="contrast"
               checked={highContrast}
               onChange={e => setHighContrast(e.target.checked)}
-              className="w-5 h-5 rounded text-primary focus:ring-primary mt-1 shrink-0"
+              className="w-5 h-5 rounded text-primary focus:ring-primary mt-1 shrink-0 cursor-pointer"
             />
           </div>
         </div>
@@ -162,28 +192,28 @@ export default function FarmerSettingsPage() {
         <div className="border-t border-border pt-6 space-y-3">
           <h4 className="text-xs font-bold text-muted-foreground flex items-center gap-1.5">
             <Eye size={14} className="text-primary" />
-            {t.previewTitle}
+            {labels.previewTitle}
           </h4>
 
-          <div className="bg-secondary/40 p-4 border border-border rounded-xl space-y-3 text-xs">
-            <div className="flex items-center justify-between border-b border-border pb-1">
-              <span className="font-bold text-foreground">{t.dashboardLabel}</span>
-              <span className="text-[10px] bg-primary/10 text-primary font-bold px-2 py-0.5 rounded-full">Sri Murugan Farm</span>
+          <div className="bg-secondary/40 p-4 border border-border rounded-xl space-y-3 text-xs shadow-inner">
+            <div className="flex items-center justify-between border-b border-border/80 pb-1">
+              <span className="font-bold text-foreground">{t.dashboard}</span>
+              <span className="text-[10px] bg-primary/20 text-primary font-bold px-2 py-0.5 rounded-full border border-primary/20">Sri Murugan Farm</span>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-card p-2.5 rounded border border-border/80">
-                <span className="text-[10px] text-muted-foreground block">{t.mortalityLabel}</span>
+              <div className="bg-card p-2.5 rounded border border-border/80 shadow-sm">
+                <span className="text-[10px] text-muted-foreground block">{t.deathsToday}</span>
                 <span className="text-base font-extrabold text-risk-critical">1</span>
               </div>
-              <div className="bg-card p-2.5 rounded border border-border/80">
-                <span className="text-[10px] text-muted-foreground block">{t.sickLabel}</span>
+              <div className="bg-card p-2.5 rounded border border-border/80 shadow-sm">
+                <span className="text-[10px] text-muted-foreground block">{t.sickBirdsToday}</span>
                 <span className="text-base font-extrabold text-risk-medium">20</span>
               </div>
             </div>
 
-            <div className="bg-card p-2.5 rounded border border-border/80 flex justify-between items-center">
-              <span className="text-[10px] text-muted-foreground">{t.scoreLabel}</span>
+            <div className="bg-card p-2.5 rounded border border-border/80 flex justify-between items-center shadow-sm">
+              <span className="text-[10px] text-muted-foreground">{t.complianceRate}</span>
               <span className="font-extrabold text-primary">92%</span>
             </div>
           </div>
@@ -192,9 +222,10 @@ export default function FarmerSettingsPage() {
         {/* Submit */}
         <button
           type="submit"
-          className="w-full bg-primary hover:bg-primary/95 text-primary-foreground font-bold py-3 rounded-xl text-sm transition-colors shadow-sm"
+          className="w-full bg-primary hover:bg-primary/95 text-primary-foreground font-bold py-3 rounded-xl text-sm transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
         >
-          {t.saveBtn}
+          <Save size={16} />
+          {labels.saveBtn}
         </button>
 
       </form>

@@ -40,37 +40,38 @@
 :root {
   color-scheme: light;
   
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  /* Vibrant Farm Theme (Emerald & Golden Amber) */
+  --background: #f0f7f4; /* Soft organic mint-cream background */
+  --foreground: #062f22; /* Deep forest slate text */
   
   --card: #ffffff;
-  --card-foreground: #0f172a;
+  --card-foreground: #062f22;
   
   --popover: #ffffff;
-  --popover-foreground: #0f172a;
+  --popover-foreground: #062f22;
   
-  --primary: #1e3a8a; /* Deep Navy Blue */
+  --primary: #10b981; /* Vibrant Emerald Green */
   --primary-foreground: #ffffff;
   
-  --secondary: #f1f5f9;
-  --secondary-foreground: #1e293b;
+  --secondary: #e6f4ea; /* Soft light-green secondary elements */
+  --secondary-foreground: #064e3b;
   
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
+  --muted: #f3fdf6;
+  --muted-foreground: #34a853;
   
-  --accent: #0284c7; /* Sky Accent */
+  --accent: #f59e0b; /* Golden Amber Accent */
   --accent-foreground: #ffffff;
   
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
   
-  --border: #e2e8f0;
-  --input: #e2e8f0;
-  --ring: #3b82f6;
+  --border: #a7f3d0; /* Soft emerald borders */
+  --input: #a7f3d0;
+  --ring: #10b981;
   
-  --radius: 0.5rem;
+  --radius: 0.75rem;
 
-  /* Static Risk Color Tokens (Must not change in dark mode) */
+  /* Static Risk Colors */
   --risk-low: #22c55e;
   --risk-medium: #eab308;
   --risk-high: #f97316;
@@ -80,33 +81,33 @@
 .dark {
   color-scheme: dark;
   
-  --background: #0b0f19;
-  --foreground: #f8fafc;
+  --background: #030806; /* Deep dark slate green forest background */
+  --foreground: #ecfdf5; /* Crisp mint-white text */
   
-  --card: #111827;
-  --card-foreground: #f8fafc;
+  --card: #061510; /* Dark emerald card background */
+  --card-foreground: #ecfdf5;
   
-  --popover: #111827;
-  --popover-foreground: #f8fafc;
+  --popover: #061510;
+  --popover-foreground: #ecfdf5;
   
-  --primary: #3b82f6; /* Modern Blue */
-  --primary-foreground: #0f172a;
+  --primary: #34d399; /* Bright Emerald Green */
+  --primary-foreground: #022c22;
   
-  --secondary: #1f2937;
-  --secondary-foreground: #f3f4f6;
+  --secondary: #0b251e; /* Darker emerald elements */
+  --secondary-foreground: #a7f3d0;
   
-  --muted: #1f2937;
-  --muted-foreground: #9ca3af;
+  --muted: #0b251e;
+  --muted-foreground: #34d399;
   
-  --accent: #38bdf8;
-  --accent-foreground: #0f172a;
+  --accent: #fbbf24;
+  --accent-foreground: #022c22;
   
   --destructive: #f87171;
   --destructive-foreground: #ffffff;
   
-  --border: #374151;
-  --input: #374151;
-  --ring: #60a5fa;
+  --border: #064e3b; /* Dark forest borders */
+  --input: #064e3b;
+  --ring: #34d399;
 
   /* Static Risk Colors must remain constant */
   --risk-low: #22c55e;
@@ -125,4 +126,19 @@
     color: var(--foreground);
     transition: background-color 0.2s ease, color 0.2s ease;
   }
+}
+
+/* Beautiful dynamic glowing card elements for colourful look */
+.colorful-card-primary {
+  border-top: 4px solid var(--primary);
+  box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.1), 0 2px 4px -2px rgba(16, 185, 129, 0.05);
+}
+
+.colorful-card-accent {
+  border-top: 4px solid var(--accent);
+  box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.1), 0 2px 4px -2px rgba(245, 158, 11, 0.05);
+}
+
+.colorful-card-risk {
+  border-left: 6px solid var(--risk-critical);
 }
