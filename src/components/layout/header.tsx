@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Menu, Bell, User, Check, X, ShieldAlert, Languages } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Menu, Bell, User, Check, X, ShieldAlert, Languages, Clock } from 'lucide-react';
 import { ThemeToggle } from './theme-toggle';
 import { mockNotifications } from '@/mock-data';
 import Link from 'next/link';
@@ -16,6 +16,30 @@ export function Header({ role, onMenuToggle }: HeaderProps) {
   const { language, setLanguage } = useLanguage();
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState(mockNotifications);
+  const [dateTime, setDateTime] = useState<string>('');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const updateDateTime = () => {
+      const now = new Date();
+      const options: Intl.DateTimeFormatOptions = {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      };
+      setDateTime(now.toLocaleDateString('en-US', options).replace(/,/g, ''));
+    };
+
+    updateDateTime();
+    const interval = setInterval(updateDateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
   
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -40,14 +64,12 @@ export function Header({ role, onMenuToggle }: HeaderProps) {
           <Menu size={22} />
         </button>
         
-        <div>
-          <h1 className="text-sm font-semibold tracking-tight capitalize text-muted-foreground">
-            SIH-25006 Biosecurity Portal
-          </h1>
-          <p className="text-xs text-muted-foreground hidden sm:block">
-            Digital Farm Management & Epidemic Control Grid
-          </p>
-        </div>
+        {mounted && dateTime && (
+          <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground bg-secondary/20 px-3 py-1.5 rounded-lg border border-border/80 shadow-inner">
+            <Clock size={13} className="text-primary animate-pulse" />
+            <span className="font-mono text-[11px]">{dateTime}</span>
+          </div>
+        )}
       </div>
 
       {/* Right side: Developer Quick Switch, Notifications, Theme Toggle */}
