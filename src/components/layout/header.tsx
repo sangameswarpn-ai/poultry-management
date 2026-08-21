@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Menu, Bell, User, Check, X, ShieldAlert } from 'lucide-react';
+import { Menu, Bell, User, Check, X, ShieldAlert, Languages } from 'lucide-react';
 import { ThemeToggle } from './theme-toggle';
 import { mockNotifications } from '@/mock-data';
 import Link from 'next/link';
+import { useLanguage, LanguageCode } from '@/components/language-provider';
 
 interface HeaderProps {
   role: 'farmer' | 'officer' | 'admin';
@@ -12,6 +13,7 @@ interface HeaderProps {
 }
 
 export function Header({ role, onMenuToggle }: HeaderProps) {
+  const { language, setLanguage } = useLanguage();
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState(mockNotifications);
   
@@ -74,8 +76,26 @@ export function Header({ role, onMenuToggle }: HeaderProps) {
           </Link>
         </div>
 
+        {/* Global Language Selector Dropdown */}
+        <div className="flex items-center gap-1.5 bg-secondary border border-border px-2.5 py-1.5 rounded-lg shadow-sm">
+          <Languages size={14} className="text-primary shrink-0" />
+          <select
+            value={language}
+            onChange={(e) => setLanguage(e.target.value as LanguageCode)}
+            className="bg-transparent border-none text-foreground text-[11px] font-bold focus:outline-none cursor-pointer pr-1"
+          >
+            <option value="en" className="bg-popover text-popover-foreground">EN</option>
+            <option value="ta" className="bg-popover text-popover-foreground">தமிழ்</option>
+            <option value="ml" className="bg-popover text-popover-foreground">മലയാളം</option>
+            <option value="hi" className="bg-popover text-popover-foreground">हिन्दी</option>
+            <option value="mr" className="bg-popover text-popover-foreground">मराठी</option>
+            <option value="gu" className="bg-popover text-popover-foreground">ગુજરાતી</option>
+          </select>
+        </div>
+
         {/* Theme Switching Trigger */}
         <ThemeToggle />
+
 
         {/* Notifications Icon Button */}
         <div className="relative">
