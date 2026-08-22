@@ -13,6 +13,8 @@ export default function BiosecurityChecklistPage() {
   });
 
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [rollingAvg, setRollingAvg] = useState<number | null>(null);
   const [photoProof, setPhotoProof] = useState<string | null>(null);
 
   // Compute compliance rate dynamically (20% per item)
@@ -31,12 +33,32 @@ export default function BiosecurityChecklistPage() {
     setPhotoProof('/images/mock-disinfection-uploaded.jpg');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-    }, 4000);
+    setSubmitting(true);
+    try {
+      const response = await fetch('/api/biosecurity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          farmId: 'frm-1', // Sri Murugan Layer Farm
+          ...checklist
+        })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setRollingAvg(data.rollingAverageScore);
+        setSubmitted(true);
+        setTimeout(() => {
+          setSubmitted(false);
+          setRollingAvg(null);
+        }, 5000);
+      }
+    } catch (err) {
+      console.error('Error submitting biosecurity checklist:', err);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -53,7 +75,10 @@ export default function BiosecurityChecklistPage() {
           <Check size={18} className="shrink-0" />
           <div>
             <p className="font-bold">Checklist Submitted Successfully!</p>
-            <p className="mt-0.5">Biosecurity Score updated to {complianceScore}% on the central dashboard database.</p>
+            <p className="mt-0.5">
+              Biosecurity Score updated to {complianceScore}% on the central dashboard database
+              {rollingAvg !== null && ` (7-day rolling average: ${rollingAvg}%)`}.
+            </p>
           </div>
         </div>
       )}
@@ -138,9 +163,10 @@ export default function BiosecurityChecklistPage() {
         {/* Submit */}
         <button
           type="submit"
-          className="w-full bg-primary hover:bg-primary/95 text-primary-foreground font-bold py-3 rounded-xl text-sm transition-colors shadow-sm"
+          disabled={submitting}
+          className="w-full bg-primary hover:bg-primary/95 text-primary-foreground font-bold py-3 rounded-xl text-sm transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
-          Submit Daily Verification
+          {submitting ? 'Submitting Log...' : 'Submit Daily Verification'}
         </button>
 
       </form>
