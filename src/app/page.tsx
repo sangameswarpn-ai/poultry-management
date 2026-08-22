@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Sprout, ShieldAlert, Users, TrendingUp, ChevronRight, Lock, Languages } from 'lucide-react';
+import { Sprout, ShieldAlert, Users, TrendingUp, ChevronRight, Lock, Languages, ClipboardCheck, PhoneCall, MailCheck } from 'lucide-react';
 import { ThemeToggle } from '@/components/layout/theme-toggle';
 import { useLanguage, LanguageCode } from '@/components/language-provider';
 
@@ -24,7 +24,33 @@ const landingTranslations = {
     adminTitle: "Admin Directory",
     adminDesc: "Analyze state-wide compliance levels, inspect mortality curves, monitor district response rates, and coordinate epidemic containment measures.",
     adminBtn: "Access Admin Panel",
-    footerTitle: "Developed for biosecurity management in pig & poultry farms across Indian districts."
+    footerTitle: "Developed for biosecurity management in pig & poultry farms across Indian districts.",
+    
+    // Feature Grid
+    featuresTitle: "Core Platform Capabilities",
+    feature1Title: "GIS Outbreak Mapping",
+    feature1Desc: "Real-time threat tracking with color-coded disease hotspots and coordinates popup grids.",
+    feature2Title: "Biosecurity Auditing",
+    feature2Desc: "Structured daily checklist logs computing compliance rates and rolling average scores.",
+    feature3Title: "Contact Tracing Log",
+    feature3Desc: "Log visitors, verify entry authorizations, and confirm vehicle disinfection protocols.",
+    feature4Title: "Incident Alerting",
+    feature4Desc: "Immediate alert routing to veterinary containment officers upon detection of anomalous mortality spikes.",
+
+    // Workflow
+    workflowTitle: "How the Platform Works",
+    step1Title: "1. Daily Checklist & Logging",
+    step1Desc: "Farmers log flock counts, symptoms, and biosecurity checklists on their dashboards.",
+    step2Title: "2. Real-Time Risk Analysis",
+    step2Desc: "System aggregates data, computes scores, and updates regional threat maps.",
+    step3Title: "3. Field Audits & Containment",
+    step3Desc: "Veterinary officers check alerts, inspect sites, and issue quarantine advisories.",
+
+    // Helpline
+    helplineTitle: "Emergency Containment & Helpdesk",
+    helplineDesc: "If you notice high mortality rates, abnormal flock symptoms, or need biosecurity assistance, contact your regional containment officers immediately.",
+    phoneCall: "Call State Advisory Helpdesk:",
+    emailCall: "Email Vet Incident Response:"
   },
   ta: {
     title: "டிஜிட்டல் பண்ணை மேலாண்மை மற்றும் உயிரி பாதுகாப்பு போர்டல்",
@@ -44,7 +70,30 @@ const landingTranslations = {
     adminTitle: "நிர்வாகி அடைவு",
     adminDesc: "மாநில அளவிலான இணக்க நிலைகளை பகுப்பாய்வு செய்யவும், இறப்பு விகிதங்களை ஆய்வு செய்யவும் மற்றும் அவசர தடுப்பு நடவடிக்கைகளை ஒருங்கிணைக்கவும்.",
     adminBtn: "நிர்வாகிகள் பேனலை அணுகவும்",
-    footerTitle: "இந்திய மாவட்டங்களில் உள்ள பண்ணைகளில் உயிரி பாதுகாப்பு மேலாண்மைக்காக உருவாக்கப்பட்டது."
+    footerTitle: "இந்திய மாவட்டங்களில் உள்ள பண்ணைகளில் உயிரி பாதுகாப்பு மேலாண்மைக்காக உருவாக்கப்பட்டது.",
+
+    featuresTitle: "தளத்தின் முக்கிய அம்சங்கள்",
+    feature1Title: "GIS நோய் கண்காணிப்பு வரைபடம்",
+    feature1Desc: "அபாயங்களை உடனுக்குடன் வரைபடத்தில் காட்டுதல் மற்றும் நோய் பாதிப்புகளை கண்டறிதல்.",
+    feature2Title: "உயிரி பாதுகாப்பு தணிக்கை",
+    feature2Desc: "தினசரி இணக்க விகிதங்களை கணக்கிட்டு பண்ணையின் சராசரி நிலையை கண்காணித்தல்.",
+    feature3Title: "வருகையாளர்கள் கண்காணிப்பு",
+    feature3Desc: "பண்ணையினுள் நுழையும் நபர்கள் மற்றும் வாகனங்களின் கிருமிநாசினி தகவல்களை பதிவு செய்தல்.",
+    feature4Title: "அபாய எச்சரிக்கை அமைப்பு",
+    feature4Desc: "திடீர் இறப்புகள் அல்லது அறிகுறிகள் ஏற்பட்டால் உடனடியாக கால்நடை மருத்துவர்களுக்கு தெரிவித்தல்.",
+
+    workflowTitle: "இயங்கும் முறை",
+    step1Title: "1. தினசரி பதிவுகள்",
+    step1Desc: "பண்ணையாளர்கள் தங்களின் தினசரி விவரங்களை தளத்தில் பதிவு செய்கிறார்கள்.",
+    step2Title: "2. தானியங்கி பகுப்பாய்வு",
+    step2Desc: "அமைப்பானது தரவுகளை ஒருங்கிணைத்து பண்ணையின் ஆபத்து குறியீட்டை கணக்கிடுகிறது.",
+    step3Title: "3. கள ஆய்வு & தடுப்பு",
+    step3Desc: "அதிகாரிகள் எச்சரிக்கைகளை சரிபார்த்து நோய்த்தடுப்பு பணிகளை மேற்கொள்கின்றனர்.",
+
+    helplineTitle: "அவசர உதவி மற்றும் கட்டுப்பாட்டு மையம்",
+    helplineDesc: "பண்ணையில் அதிக இறப்புகள் அல்லது வழக்கத்திற்கு மாறான அறிகுறிகள் தென்பட்டால் உடனடியாக கால்நடை அதிகாரிகளை தொடர்பு கொள்ளவும்.",
+    phoneCall: "மாநில ஆலோசனை உதவி எண்:",
+    emailCall: "மின்னஞ்சல் முகவரி:"
   },
   ml: {
     title: "ഡിജിറ്റൽ ഫാം മാനേജ്മെന്റ് & ബയോസെക്യൂരിറ്റി പോർട്ടൽ",
@@ -64,7 +113,30 @@ const landingTranslations = {
     adminTitle: "അഡ്മിൻ ഡയറക്ടറി",
     adminDesc: "സംസ്ഥാനത്തെ ബയോസെക്യൂരിറ്റി പാലിക്കൽ നിലവാരം വിലയിരുത്തുക, മരണനിരക്കുകൾ വിശകലനം ചെയ്യുക, രോഗനിയന്ത്രണ പ്രവർത്തനങ്ങൾ ഏകോപിപ്പിക്കുക.",
     adminBtn: "അഡ്മിൻ പാനൽ തുറക്കുക",
-    footerTitle: "ഇന്ത്യയിലെ വിവിധ ജില്ലകളിലെ ബയോസെക്യൂരിറ്റി ഫാം മാനേജ്മെന്റിനായി വികസിപ്പിച്ചത്."
+    footerTitle: "ഇന്ത്യയിലെ വിവിധ ജില്ലകളിലെ ബയോസെക്യൂരിറ്റി ഫാം മാനേജ്മെന്റിനായി വികസിപ്പിച്ചത്.",
+
+    featuresTitle: "പ്രധാന സവിശേഷതകൾ",
+    feature1Title: "ജി.ഐ.എസ് രോഗവ്യാപന മാപ്പിംഗ്",
+    feature1Desc: "രോഗ ബാധിത പ്രദേശങ്ങൾ ഭൂപടത്തിൽ തത്സമയം അടയാളപ്പെടുത്തുന്നു.",
+    feature2Title: "ബയോസെക്യൂരിറ്റി ഓഡിറ്റിംഗ്",
+    feature2Desc: "ദൈനംദിന വിവരങ്ങളിലൂടെ ഫാമുകളുടെ സുരക്ഷാ നിലവാരം വിലയിരുത്തുന്നു.",
+    feature3Title: "സന്ദർശക നിരീക്ഷണം",
+    feature3Desc: "വാഹന ശുചീകരണ വിവരങ്ങളും സന്ദർശക വിവരങ്ങളും രേഖപ്പെടുത്തുന്നു.",
+    feature4Title: "അടിയന്തിര മുന്നറിയിപ്പ്",
+    feature4Desc: "അസ്വാഭാവിക മരണം സംഭവിച്ചാൽ ഉദ്യോഗസ്ഥരെ ഉടൻ അറിയിക്കുന്നു.",
+
+    workflowTitle: "ഇത് എങ്ങനെ പ്രവർത്തിക്കുന്നു",
+    step1Title: "1. വിവരങ്ങൾ രേഖപ്പെടുത്തുക",
+    step1Desc: "കർഷകർ ഫാമിലെ വിവരങ്ങൾ ദിവസേന പോർട്ടലിൽ അപ്ഡേറ്റ് ചെയ്യുന്നു.",
+    step2Title: "2. സുരക്ഷാ വിശകലനം",
+    step2Desc: "സിസ്റ്റം വിവരങ്ങൾ വിശകലനം ചെയ്ത് സുരക്ഷാ ഇൻഡക്സ് കണക്കാക്കുന്നു.",
+    step3Title: "3. രോഗനിയന്ത്രണം",
+    step3Desc: "ഉദ്യോഗस्थർ വിവരങ്ങൾ പരിശോധിച്ച് ആവശ്യമായ പ്രതിരോധ മാർഗ്ഗങ്ങൾ നൽകുന്നു.",
+
+    helplineTitle: "അടിയന്തിര സഹായ കേന്ദ്രം",
+    helplineDesc: "അസ്വാഭാവിക ലക്ഷണങ്ങളോ മരണങ്ങളോ കാണുകയാണെങ്കിൽ ഉടൻ വെറ്ററിനറി ഉദ്യോഗസ്ഥരുമായി ബന്ധപ്പെടുക.",
+    phoneCall: "സംസ്ഥാന കൺട്രോൾ റൂം നമ്പർ:",
+    emailCall: "ഇമെയിൽ വിലാസം:"
   },
   hi: {
     title: "डिजिटल फार्म प्रबंधन और जैव-सुरक्षा पोर्टल",
@@ -84,7 +156,30 @@ const landingTranslations = {
     adminTitle: "एडमिन निर्देशिका",
     adminDesc: "राज्य-व्यापी अनुपालन स्तरों का विश्लेषण करें, मृत्यु दर वक्रों का निरीक्षण करें, और महामारी रोकथाम उपायों का समन्वय करें।",
     adminBtn: "एडमिन पैनल तक पहुंचें",
-    footerTitle: "भारतीय जिलों में पोल्ट्री और सुअर फार्मों में जैव-सुरक्षा प्रबंधन के लिए विकसित किया गया।"
+    footerTitle: "भारतीय जिलों में पोल्ट्री और सुअर फार्मों में जैव-सुरक्षा प्रबंधन के लिए विकसित किया गया।" ,
+
+    featuresTitle: "प्रमुख विशेषताएं",
+    feature1Title: "जीआईएस हॉटस्पॉट मैपिंग",
+    feature1Desc: "बीमारी प्रभावित क्षेत्रों का लाइव मानचित्रण और त्वरित जोखिम ट्रैकिंग।",
+    feature2Title: "जैव-सुरक्षा ऑडिटिंग",
+    feature2Desc: "दैनिक रिपोर्टों के माध्यम से अनुपालन दर और औसत स्कोर की गणना।",
+    feature3Title: "संपर्क ट्रेसिंग",
+    feature3Desc: "आगंतुकों और वाहनों के सैनिटाइजेशन रिकॉर्ड को दर्ज करना।",
+    feature4Title: "त्वरित अलर्ट प्रेषण",
+    feature4Desc: "असामान्य पक्षी मृत्यु की स्थिति में पशु चिकित्सकों को तत्काल सूचना भेजना।",
+
+    workflowTitle: "कार्यप्रणाली",
+    step1Title: "1. दैनिक जानकारी दर्ज करें",
+    step1Desc: "किसान अपने डैशबोर्ड पर पक्षियों की संख्या और जैव-सुरक्षा विवरण दर्ज करते हैं।",
+    step2Title: "2. जोखिम गणना",
+    step2Desc: "सिस्टम डेटा एकत्र करके जोखिम सूचकांक तैयार करता है।",
+    step3Title: "3. रोकथाम एवं उपचार",
+    step3Desc: "अधिकारी अलर्ट का विश्लेषण करके निवारक उपाय लागू करते हैं।",
+
+    helplineTitle: "आपातकालीन सहायता और नियंत्रण कक्ष",
+    helplineDesc: "किसी भी असामान्य लक्षण या बीमारी के मामले में तुरंत पशु चिकित्सा अधिकारियों से संपर्क करें।",
+    phoneCall: "राज्य हेल्पलाइन नंबर:",
+    emailCall: "ईमेल आईडी:"
   },
   mr: {
     title: "डिजिटल फार्म व्यवस्थापन आणि जैव-सुरक्षा पोर्टल",
@@ -104,7 +199,30 @@ const landingTranslations = {
     adminTitle: "प्रशासक निर्देशिका",
     adminDesc: "राज्यभरातील नियमांचे पालन तपासा, मृत्यू वक्र तपासा आणि नियंत्रण उपायांचे समन्वय साधा.",
     adminBtn: "प्रशासक पॅनेल उघडा",
-    footerTitle: "भारतीय जिल्ह्यांमधील पोल्ट्री आणि डुक्कर फार्म व्यवस्थापनासाठी विकसित केले गेले."
+    footerTitle: "भारतीय जिल्ह्यांमधील पोल्ट्री आणि डुक्कर फार्म व्यवस्थापनासाठी विकसित केले गेले.",
+
+    featuresTitle: "व्यासपीठाची वैशिष्ट्ये",
+    feature1Title: "जीआयएस हॉटस्पॉट मॅपिंग",
+    feature1Desc: "नकाशाद्वारे बाधित क्षेत्रांचे थेट ट्रॅकिंग आणि व्यवस्थापन करणे.",
+    feature2Title: "जैव-सुरक्षा ऑडिट",
+    feature2Desc: "दैनिक अहवालांद्वारे सुरक्षितता निर्देशांक मोजणे.",
+    feature3Title: "संपर्क ट्रेसिंग",
+    feature3Desc: "भेट देणाऱ्या व्यक्तींची आणि वाहनांची माहिती नोंदवणे.",
+    feature4Title: "तातडीची सूचना",
+    feature4Desc: "पक्षी मृत्यू वाढल्यास पशुवैद्यकीय डॉक्टरांना त्वरित इशारा देणे.",
+
+    workflowTitle: "कार्यपद्धती कशी आहे?",
+    step1Title: "1. दैनिक नोंद",
+    step1Desc: "शेतकरी त्यांच्या डैशबोर्डवरून दैनंदिन कामांचे तपशील भरतात.",
+    step2Title: "2. जोखीम विश्लेषण",
+    step2Desc: "सिस्टम माहिती तपासून धोका स्तर निश्चित करते.",
+    step3Title: "3. नियंत्रण व उपाय",
+    step3Desc: "अधिकारी नोंदी तपासून त्वरित उपाययोजना सुचवतात आणि अमलात आणतात.",
+
+    helplineTitle: "अतिदक्षता व नियंत्रण कक्ष",
+    helplineDesc: "कोणतीही आजाराची लक्षणे किंवा जास्त पक्षी मृत्यू आढळल्यास नियंत्रण कक्षाशी संपर्क साधा.",
+    phoneCall: "हेल्पलाइन क्रमांक:",
+    emailCall: "ईमेल पत्ता:"
   },
   gu: {
     title: "ડિજિટલ ફાર્મ મેનેજમેન્ટ અને જૈવ-સુરક્ષા પોર્ટલ",
@@ -124,7 +242,30 @@ const landingTranslations = {
     adminTitle: "એડમિન ડિરેક્ટરી",
     adminDesc: "રાજ્ય સ્તરે નિયમોના પાલનનું વિશ્લેષણ કરો, મૃત્યુદર વળાંક તપાસો અને રોગ અટકાવવાના પગલાં સંકલિત કરો.",
     adminBtn: "એડમિન પેનલ ઍક્સેસ કરો",
-    footerTitle: "ભારતીય જિલ્લાઓમાં પોલ્ટ્રી અને ડુક્કર ફાર્મ વ્યવસ્થાપન માટે વિકસિત કરાયું."
+    footerTitle: "ભારતીય જિલ્લાઓમાં પોલ્ટ્રી અને ડુક્કર ફાર્મ વ્યવસ્થાપન માટે વિકસિત કરાયું.",
+
+    featuresTitle: "પ્લેટફોર્મની સુવિધાઓ",
+    feature1Title: "જીઆઈએસ હોટસ્પોટ મેપિંગ",
+    feature1Desc: "રોગગ્રસ્ત વિસ્તારોનું જીવંત મેપિંગ અને વિઝ્યુઅલ ટ્રેકિંગ.",
+    feature2Title: "જૈવ-સુરક્ષા ઓડિટ",
+    feature2Desc: "દૈનિક રિપોર્ટ્સ દ્વારા સુરક્ષા અને પાલન દરની ગણતરી.",
+    feature3Title: "મુલાકાતી ટ્રેકિંગ",
+    feature3Desc: "ફાર્મમાં મુલાકાતીઓ અને વાહનોના સેનિટાઈઝેશનની નોંધણી.",
+    feature4Title: "ઝડપી એલર્ટ સિસ્ટમ",
+    feature4Desc: "રોગના ચિહ્નો અથવા પક્ષીઓના મોત પર પશુ ચિકિત્સકોને તાત્કાલિક જાણ કરવી.",
+
+    workflowTitle: "કાર્યપ્રણાલી",
+    step1Title: "1. દૈનિક વિગતો નોંધો",
+    step1Desc: "ખેડૂતો ફાર્મના પક્ષીઓની સંખ્યા અને જૈવ-સુરક્ષાના આંકડા પોર્ટલમાં ભરે છે.",
+    step2Title: "2. જોખમ વિશ્લેષણ",
+    step2Desc: "સિસ્ટમ ડેટા પ્રોસેસ કરીને ફાર્મનો રિસ્ક ઇન્ડેક્સ તૈયાર કરે છે.",
+    step3Title: "3. રોગ નિયંત્રણ",
+    step3Desc: "અધિકારીઓ એલર્ટનું નિરીક્ષણ કરીને સ્થળ પર જરૂરી કામગીરી હાથ ધરે છે.",
+
+    helplineTitle: "ઇમરજન્સી હેલ્પડેસ્ક અને કંટ્રોલ રૂમ",
+    helplineDesc: "કોઈપણ ગંભીર લક્ષણો અથવા પક્ષીઓના મોતના કિસ્સામાં હેલ્પલાઇનનો ત્વરિત સંપર્ક કરો.",
+    phoneCall: "રાજ્ય હેલ્પલાઇન નંબર:",
+    emailCall: "ઈમેઈલ આઈડી:"
   }
 };
 
@@ -264,6 +405,98 @@ export default function LandingPage() {
               {t.adminBtn}
               <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
             </Link>
+          </div>
+        </div>
+
+        {/* Features Capabilities Grid */}
+        <div className="w-full max-w-5xl mt-20 space-y-6">
+          <h3 className="text-xl font-bold text-center text-foreground">{t.featuresTitle}</h3>
+          <div className="grid gap-6 md:grid-cols-2">
+            
+            <div className="bg-card border border-border p-5 rounded-2xl flex gap-4 items-start shadow-sm hover:shadow-md transition-shadow">
+              <div className="bg-primary/10 text-primary p-3 rounded-xl shrink-0">
+                <Sprout size={20} />
+              </div>
+              <div>
+                <h4 className="font-bold text-sm text-foreground">{t.feature1Title}</h4>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{t.feature1Desc}</p>
+              </div>
+            </div>
+            
+            <div className="bg-card border border-border p-5 rounded-2xl flex gap-4 items-start shadow-sm hover:shadow-md transition-shadow">
+              <div className="bg-primary/10 text-primary p-3 rounded-xl shrink-0">
+                <ClipboardCheck size={20} />
+              </div>
+              <div>
+                <h4 className="font-bold text-sm text-foreground">{t.feature2Title}</h4>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{t.feature2Desc}</p>
+              </div>
+            </div>
+
+            <div className="bg-card border border-border p-5 rounded-2xl flex gap-4 items-start shadow-sm hover:shadow-md transition-shadow">
+              <div className="bg-primary/10 text-primary p-3 rounded-xl shrink-0">
+                <Users size={20} />
+              </div>
+              <div>
+                <h4 className="font-bold text-sm text-foreground">{t.feature3Title}</h4>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{t.feature3Desc}</p>
+              </div>
+            </div>
+
+            <div className="bg-card border border-border p-5 rounded-2xl flex gap-4 items-start shadow-sm hover:shadow-md transition-shadow">
+              <div className="bg-red-500/10 text-risk-critical p-3 rounded-xl shrink-0">
+                <ShieldAlert size={20} />
+              </div>
+              <div>
+                <h4 className="font-bold text-sm text-foreground">{t.feature4Title}</h4>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{t.feature4Desc}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Workflow Diagram */}
+        <div className="w-full max-w-5xl mt-20 space-y-6 bg-secondary/30 border border-border p-8 rounded-3xl">
+          <h3 className="text-xl font-bold text-center text-foreground">{t.workflowTitle}</h3>
+          <div className="grid gap-6 md:grid-cols-3 relative">
+            <div className="space-y-2 text-center p-4 bg-card rounded-2xl border border-border shadow-sm">
+              <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground font-bold flex items-center justify-center mx-auto text-sm">1</div>
+              <h4 className="font-bold text-xs text-foreground mt-2">{t.step1Title}</h4>
+              <p className="text-[11px] text-muted-foreground leading-relaxed mt-1">{t.step1Desc}</p>
+            </div>
+            
+            <div className="space-y-2 text-center p-4 bg-card rounded-2xl border border-border shadow-sm">
+              <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground font-bold flex items-center justify-center mx-auto text-sm">2</div>
+              <h4 className="font-bold text-xs text-foreground mt-2">{t.step2Title}</h4>
+              <p className="text-[11px] text-muted-foreground leading-relaxed mt-1">{t.step2Desc}</p>
+            </div>
+
+            <div className="space-y-2 text-center p-4 bg-card rounded-2xl border border-border shadow-sm">
+              <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground font-bold flex items-center justify-center mx-auto text-sm">3</div>
+              <h4 className="font-bold text-xs text-foreground mt-2">{t.step3Title}</h4>
+              <p className="text-[11px] text-muted-foreground leading-relaxed mt-1">{t.step3Desc}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Advisory / Helpline */}
+        <div className="w-full max-w-5xl mt-20 space-y-4 bg-red-500/5 border border-red-500/20 p-6 rounded-2xl text-center">
+          <h3 className="text-base font-bold text-risk-critical flex items-center justify-center gap-2">
+            <ShieldAlert size={18} />
+            {t.helplineTitle}
+          </h3>
+          <p className="text-xs text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            {t.helplineDesc}
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 items-center justify-center mt-2 text-xs font-bold">
+            <div className="flex items-center gap-2 text-foreground">
+              <PhoneCall size={14} className="text-primary" />
+              <span>{t.phoneCall} <span className="font-mono text-primary">+91 44 2432 1000</span></span>
+            </div>
+            <div className="flex items-center gap-2 text-foreground">
+              <MailCheck size={14} className="text-primary" />
+              <span>{t.emailCall} <span className="font-mono text-primary">incident-response@vet.gov.in</span></span>
+            </div>
           </div>
         </div>
 
