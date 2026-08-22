@@ -13,7 +13,11 @@ export default function FlockHealthPage() {
   const [deathsCount, setDeathsCount] = useState(farm.mortalityCount);
   
   const [symptoms, setSymptoms] = useState<string[]>([]);
+  const [notes, setNotes] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [riskResult, setRiskResult] = useState<{ recordId: string; riskIndex: number; riskLevel: string; mode: string } | null>(null);
 
   const toggleSymptom = (symptom: string) => {
     setSymptoms(prev => 
@@ -57,12 +61,45 @@ export default function FlockHealthPage() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-    }, 4000);
+    setSubmitting(true);
+    setError(null);
+    setRiskResult(null);
+
+    try {
+      const res = await fetch('/api/health-logs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          farmId: 'frm-1', // Default Sri Murugan Farm
+          totalAnimals,
+          healthyCount,
+          sickCount,
+          mortalityCount: deathsCount,
+          symptoms,
+          notes
+        })
+      });
+
+      if (!res.ok) throw new Error('Failed to record daily health logs');
+      const data = await res.json();
+      setRiskResult(data);
+      setSubmitted(true);
+      
+      // Clear symptoms and notes on success
+      setSymptoms([]);
+      setNotes('');
+      
+      setTimeout(() => {
+        setSubmitted(false);
+      }, 7000);
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'Server connection issue');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const symptomsList = [
@@ -78,13 +115,23 @@ export default function FlockHealthPage() {
         <p className="text-xs text-muted-foreground">Log mortality anomalies and clinical symptoms for the Risk Engine</p>
       </div>
 
-      {submitted && (
+      {submitted && riskResult && (
         <div className="bg-green-500/10 border border-green-500/30 text-green-700 dark:text-green-400 p-4 rounded-xl flex items-center gap-3 text-xs">
-          <Check size={18} className="shrink-0" />
+          <Check size={18} className="shrink-0 animate-bounce" />
           <div>
-            <p className="font-bold">Health Log Saved!</p>
-            <p className="mt-0.5">Telemetry submitted. Central database updated. Calculated health score: OK.</p>
+            <p className="font-bold">Health Log Saved! ({riskResult.mode === 'database' ? 'Live DB' : 'Standalone Mode'})</p>
+            <p className="mt-0.5">
+              Record ID: <span className="font-mono font-bold text-foreground">{riskResult.recordId}</span>. 
+              Calculated Outbreak Risk Level: <span className="font-bold text-risk-critical">{riskResult.riskLevel}</span> (Risk Index: {riskResult.riskIndex}/100).
+            </p>
           </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/30 text-red-700 dark:text-red-400 p-4 rounded-xl text-xs">
+          <p className="font-bold">Error Dispatching Health Telemetry</p>
+          <p className="mt-0.5 leading-relaxed">{error}</p>
         </div>
       )}
 
@@ -207,12 +254,32 @@ export default function FlockHealthPage() {
           </div>
         </div>
 
+        {/* Additional Observations */}
+        <div className="border-t border-border pt-6 text-xs">
+          <label className="text-xs font-bold text-muted-foreground block mb-2">Additional Observations / Clinical Notes</label>
+          <textarea
+            rows={3}
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Describe flock feeding levels, water consumption anomalies, comb or feather discoloration..."
+            className="w-full bg-secondary border border-border rounded-lg p-3 focus:outline-none focus:border-primary text-xs leading-relaxed"
+          ></textarea>
+        </div>
+
         {/* Submit */}
         <button
           type="submit"
-          className="w-full bg-primary hover:bg-primary/95 text-primary-foreground font-bold py-3 rounded-xl text-sm transition-colors shadow-sm"
+          disabled={submitting}
+          className="w-full bg-primary hover:bg-primary/95 text-primary-foreground font-bold py-3 rounded-xl text-sm transition-all shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
-          Submit Daily Telemetry
+          {submitting ? (
+            <>
+              <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin"></span>
+              Dispatching Daily Logs...
+            </>
+          ) : (
+            'Submit Daily Telemetry'
+          )}
         </button>
 
       </form>
