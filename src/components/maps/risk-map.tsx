@@ -13,12 +13,15 @@ interface RiskMapProps {
 export default function RiskMap({
   filterRisk = 'ALL',
   showBuffers = false,
-  simMortality = 20, // defaults
+  simMortality = 20,
   simCompliance = 92
 }: RiskMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<any>(null);
+  const layersRef = useRef<{ markers: any; buffers: any } | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
 
+  // 1. Initialize Leaflet Map once on Component Mount
   useEffect(() => {
     if (typeof window === 'undefined' || !mapRef.current) return;
 
@@ -36,6 +39,9 @@ export default function RiskMap({
         document.head.appendChild(link);
       }
 
+      // If map was somehow already initialized in this ref container, do not initialize again
+      if (mapInstanceRef.current) return;
+
       // Initialize map centering around Namakkal (Tamil Nadu)
       mapInstance = L.map(mapRef.current!).setView([11.2189, 78.1672], 11);
 
@@ -43,22 +49,52 @@ export default function RiskMap({
         attribution: '© OpenStreetMap contributors',
       }).addTo(mapInstance);
 
-      // Create a layer group for outbreak buffer rings
-      const bufferLayerGroup = L.layerGroup().addTo(mapInstance);
-      const markerLayerGroup = L.layerGroup().addTo(mapInstance);
+      // Create Layer Groups and attach to map instance
+      const bufferGroup = L.layerGroup().addTo(mapInstance);
+      const markerGroup = L.layerGroup().addTo(mapInstance);
 
-      // Draw farms
+      layersRef.current = {
+        markers: markerGroup,
+        buffers: bufferGroup
+      };
+
+      mapInstanceRef.current = mapInstance;
+      setMapLoaded(true);
+    }).catch(err => console.error('Leaflet load error:', err));
+
+    // Cleanup map instance on component unmount
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+        layersRef.current = null;
+      }
+    };
+  }, []);
+
+  // 2. Redraw map markers and containment buffers when filter state/sliders update
+  useEffect(() => {
+    if (!mapLoaded || !mapInstanceRef.current || !layersRef.current) return;
+
+    import('leaflet').then((L) => {
+      const { markers, buffers } = layersRef.current!;
+
+      // Clear layers from previous renders to avoid duplicate rendering
+      markers.clearLayers();
+      buffers.clearLayers();
+
+      // Redraw farms with updated simulation parameters
       mockFarms.forEach((farm) => {
-        // Apply sandbox simulation logic for the active farm (frm-1)
         let activeRisk = farm.riskLevel;
         let activeCompliance = farm.biosecurityScore;
         let activeMortality = farm.mortalityCount;
 
+        // Apply sliders parameters to Farm-1 (Sri Murugan)
         if (farm.id === 'frm-1') {
           activeCompliance = simCompliance;
           activeMortality = simMortality;
           
-          // Re-calculate mock risk score on the fly
+          // Compute simulated risk index
           const riskIndex = (activeMortality * 2.5) + (100 - activeCompliance);
           if (riskIndex >= 70) activeRisk = 'CRITICAL';
           else if (riskIndex >= 45) activeRisk = 'HIGH';
@@ -66,7 +102,7 @@ export default function RiskMap({
           else activeRisk = 'LOW';
         }
 
-        // Apply risk filters
+        // Apply risk level filter selection
         if (filterRisk !== 'ALL' && activeRisk !== filterRisk) {
           return;
         }
@@ -80,19 +116,19 @@ export default function RiskMap({
             ? '#eab308' // Yellow
             : '#22c55e'; // Green
 
-        // Render outbreak zone buffers (5km radius circle rings) around Critical and High nodes
+        // Draw containment buffer zones if active
         if (showBuffers && (activeRisk === 'CRITICAL' || activeRisk === 'HIGH')) {
           L.circle([farm.lat, farm.lng], {
-            radius: 3500, // 3.5 Kilometers radius
+            radius: 3500, // 3.5 km ring
             color: markerColor,
             fillColor: markerColor,
-            fillOpacity: 0.15,
+            fillOpacity: 0.12,
             weight: 1.5,
             dashArray: '5, 5'
-          }).addTo(bufferLayerGroup);
+          }).addTo(buffers);
         }
 
-        // Draw farm marker dot
+        // Draw farm circle marker dot
         L.circleMarker([farm.lat, farm.lng], {
           radius: 9,
           fillColor: markerColor,
@@ -101,7 +137,7 @@ export default function RiskMap({
           opacity: 1,
           fillOpacity: 0.85,
         })
-          .addTo(markerLayerGroup)
+          .addTo(markers)
           .bindPopup(
             `<div style="font-family: sans-serif; font-size: 11px; padding: 2px;">
               <b style="font-size:12px; display:block; margin-bottom:4px; color:#062f22;">${farm.name}</b>
@@ -113,16 +149,8 @@ export default function RiskMap({
             </div>`
           );
       });
-
-      setMapLoaded(true);
-    });
-
-    return () => {
-      if (mapInstance) {
-        mapInstance.remove();
-      }
-    };
-  }, [filterRisk, showBuffers, simMortality, simCompliance]);
+    }).catch(err => console.error('Leaflet layer drawing error:', err));
+  }, [mapLoaded, filterRisk, showBuffers, simMortality, simCompliance]);
 
   return (
     <div className="relative w-full h-[450px] rounded-xl overflow-hidden border border-border">
