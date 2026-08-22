@@ -176,21 +176,21 @@ export default function FarmerDashboard() {
             <span className="text-4xl font-extrabold tracking-tight text-foreground">
               {farm.riskLevel === 'CRITICAL' ? 95 : farm.riskLevel === 'HIGH' ? 74 : farm.riskLevel === 'MEDIUM' ? 45 : 12}
             </span>
-            <span className="text-xs text-muted-foreground">/ 100 Risk Index</span>
+            <span className="text-xs text-muted-foreground">/ 100 {t.riskIndex}</span>
           </div>
 
           <div className="space-y-2 border-t border-border pt-4">
             <p className="text-xs font-bold text-foreground">{t.scoringFactors}:</p>
             <ul className="text-xs text-muted-foreground space-y-1 list-disc pl-4">
-              <li>Minimal mortality within norms</li>
-              <li>Excellent biosecurity score ({farm.biosecurityScore}%)</li>
+              <li>{t.factorMortality}</li>
+              <li>{t.factorBiosecurity} ({farm.biosecurityScore}%)</li>
             </ul>
           </div>
           
           <div className="mt-4 bg-secondary/40 p-3 rounded-lg border border-border">
             <p className="text-[10px] text-secondary-foreground leading-relaxed font-mono">
               <span className="font-bold block mb-0.5">{t.recommendations}:</span>
-              All parameters normal. Continue daily biosecurity protocols and maintain records.
+              {t.recomNormal}
             </p>
           </div>
         </div>
@@ -246,14 +246,14 @@ export default function FarmerDashboard() {
               <ClipboardCheck size={20} />
             </div>
             <div>
-              <p className="text-xs font-bold text-foreground">Biosecurity Checklist</p>
+              <p className="text-xs font-bold text-foreground">{t.biosecurity}</p>
               <p className="text-[10px] text-muted-foreground mt-0.5">{t.biosecurityDesc}</p>
             </div>
             <span className="text-[10px] text-primary font-bold mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
               {t.logTask} →
             </span>
           </Link>
-
+ 
           <Link
             href="/farmer/health"
             className="bg-card border border-border hover:border-primary p-4 rounded-xl flex flex-col items-center text-center justify-between transition-all cursor-pointer group shadow-sm hover:shadow-md"
@@ -262,14 +262,14 @@ export default function FarmerDashboard() {
               <HeartPulse size={20} />
             </div>
             <div>
-              <p className="text-xs font-bold text-foreground">Log Sickness/Deaths</p>
+              <p className="text-xs font-bold text-foreground">{t.healthLog}</p>
               <p className="text-[10px] text-muted-foreground mt-0.5">{t.logSicknessDesc}</p>
             </div>
             <span className="text-[10px] text-primary font-bold mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
               {t.addLog} →
             </span>
           </Link>
-
+ 
           <Link
             href="/farmer/reports"
             className="bg-card border border-border hover:border-primary p-4 rounded-xl flex flex-col items-center text-center justify-between transition-all cursor-pointer group shadow-sm hover:shadow-md"
@@ -278,14 +278,14 @@ export default function FarmerDashboard() {
               <FileText size={20} />
             </div>
             <div>
-              <p className="text-xs font-bold text-foreground">Report Suspected Disease</p>
+              <p className="text-xs font-bold text-foreground">{t.reportDisease}</p>
               <p className="text-[10px] text-muted-foreground mt-0.5">{t.reportSuspectDesc}</p>
             </div>
             <span className="text-[10px] text-primary font-bold mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
               {t.submit} →
             </span>
           </Link>
-
+ 
           <Link
             href="/farmer/visitors"
             className="bg-card border border-border hover:border-primary p-4 rounded-xl flex flex-col items-center text-center justify-between transition-all cursor-pointer group shadow-sm hover:shadow-md"
@@ -294,7 +294,7 @@ export default function FarmerDashboard() {
               <Users size={20} />
             </div>
             <div>
-              <p className="text-xs font-bold text-foreground">Log Visitor QR Code</p>
+              <p className="text-xs font-bold text-foreground">{t.visitorsLog}</p>
               <p className="text-[10px] text-muted-foreground mt-0.5">{t.logVisitorDesc}</p>
             </div>
             <span className="text-[10px] text-primary font-bold mt-2 opacity-0 group-hover:opacity-100 transition-opacity">

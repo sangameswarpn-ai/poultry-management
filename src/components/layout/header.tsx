@@ -6,6 +6,7 @@ import { ThemeToggle } from './theme-toggle';
 import { mockNotifications } from '@/mock-data';
 import Link from 'next/link';
 import { useLanguage, LanguageCode } from '@/components/language-provider';
+import { useTranslation } from '@/hooks/use-translation';
 
 interface HeaderProps {
   role: 'farmer' | 'officer' | 'admin';
@@ -13,6 +14,7 @@ interface HeaderProps {
 }
 
 export function Header({ role, onMenuToggle }: HeaderProps) {
+  const { t } = useTranslation();
   const { language, setLanguage } = useLanguage();
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState(mockNotifications);
@@ -77,24 +79,24 @@ export function Header({ role, onMenuToggle }: HeaderProps) {
         
         {/* Developer Sandbox Portal Switcher */}
         <div className="hidden md:flex items-center gap-2 border-r border-border pr-4 mr-2 text-xs">
-          <span className="text-muted-foreground font-medium">Evaluate:</span>
+          <span className="text-muted-foreground font-medium">{t.evaluate}</span>
           <Link 
             href="/farmer/dashboard"
             className={`px-2 py-1 rounded transition-colors ${role === 'farmer' ? 'bg-primary/10 text-primary font-bold' : 'text-muted-foreground hover:bg-secondary'}`}
           >
-            Farmer
+            {t.farmerRole}
           </Link>
           <Link 
             href="/officer/dashboard"
             className={`px-2 py-1 rounded transition-colors ${role === 'officer' ? 'bg-primary/10 text-primary font-bold' : 'text-muted-foreground hover:bg-secondary'}`}
           >
-            Officer
+            {t.officerRole}
           </Link>
           <Link 
             href="/admin/dashboard"
             className={`px-2 py-1 rounded transition-colors ${role === 'admin' ? 'bg-primary/10 text-primary font-bold' : 'text-muted-foreground hover:bg-secondary'}`}
           >
-            Admin
+            {t.adminRole}
           </Link>
         </div>
 
