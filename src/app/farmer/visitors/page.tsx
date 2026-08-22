@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Users, QrCode, Truck, UserPlus, History, Clock, Camera } from 'lucide-react';
+import { Users, QrCode, Truck, UserPlus, History, Clock, Camera, Check } from 'lucide-react';
 import { mockVisitors } from '@/mock-data';
 
 export default function VisitorsLogPage() {
@@ -13,6 +13,9 @@ export default function VisitorsLogPage() {
   const [vehicleType, setVehicleType] = useState('None');
   const [disinfection, setDisinfection] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [visitorResult, setVisitorResult] = useState<any>(null);
 
   const [cameraActive, setCameraActive] = useState(false);
   const [scanFeedback, setScanFeedback] = useState<string | null>(null);
@@ -71,31 +74,63 @@ export default function VisitorsLogPage() {
     };
   }, [cameraActive]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newVisitor = {
-      id: `vis-${Date.now()}`,
-      farmId: "frm-1",
-      name,
-      phone,
-      purpose,
-      entryTime: new Date().toISOString(),
-      qrCode: `QR_VIS_${name.toUpperCase().replace(/\s+/g, '_')}`,
-      status: 'ACTIVE' as const,
-      plateNumber: plateNumber || undefined,
-      vehicleType: vehicleType !== 'None' ? vehicleType : undefined,
-      disinfectionStatus: disinfection
-    };
+    setSubmitting(true);
+    setError(null);
+    setVisitorResult(null);
 
-    setVisitors([newVisitor, ...visitors]);
-    setName('');
-    setPhone('');
-    setPurpose('');
-    setPlateNumber('');
-    setVehicleType('None');
-    setDisinfection(false);
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 3000);
+    try {
+      const res = await fetch('/api/visitors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          farmId: 'frm-1', // Default Sri Murugan Farm
+          name,
+          phone,
+          purpose,
+          plateNumber: plateNumber || undefined,
+          vehicleType: vehicleType !== 'None' ? vehicleType : undefined,
+          disinfectionStatus: disinfection
+        })
+      });
+
+      if (!res.ok) throw new Error('Failed to register visitor and vehicle logs');
+      const data = await res.json();
+      
+      const newVisitor = {
+        id: data.visitorId || `vis-${Date.now()}`,
+        farmId: "frm-1",
+        name,
+        phone,
+        purpose,
+        entryTime: new Date().toISOString(),
+        qrCode: `QR_VIS_${name.toUpperCase().replace(/\s+/g, '_')}`,
+        status: 'ACTIVE' as const,
+        plateNumber: plateNumber || undefined,
+        vehicleType: vehicleType !== 'None' ? vehicleType : undefined,
+        disinfectionStatus: disinfection
+      };
+
+      setVisitors([newVisitor, ...visitors]);
+      setVisitorResult(data);
+      setSubmitted(true);
+
+      // Reset Form fields
+      setName('');
+      setPhone('');
+      setPurpose('');
+      setPlateNumber('');
+      setVehicleType('None');
+      setDisinfection(false);
+
+      setTimeout(() => setSubmitted(false), 6000);
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'Server connection issue');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleMarkExit = (id: string) => {
@@ -175,10 +210,20 @@ export default function VisitorsLogPage() {
             </div>
           )}
 
-          {submitted && (
-            <p className="text-[10px] text-green-600 dark:text-green-400 font-bold bg-green-500/10 p-2 rounded border border-green-500/20">
-              ✓ Visitor checked in. Log appended below.
-            </p>
+          {submitted && visitorResult && (
+            <div className="bg-green-500/10 border border-green-500/30 text-green-700 dark:text-green-400 p-3 rounded-xl text-xs space-y-1">
+              <p className="font-bold flex items-center gap-1"><Check size={14} className="animate-bounce" /> Visitor Registered! ({visitorResult.mode === 'database' ? 'Live DB' : 'Standalone Mode'})</p>
+              <p className="text-[10px] text-muted-foreground leading-relaxed">
+                ID: <span className="font-mono">{visitorResult.visitorId}</span>. 
+                Updated Outbreak Risk Level: <span className="font-bold text-risk-critical">{visitorResult.riskLevel}</span> (Risk Index: {visitorResult.riskIndex}/100).
+              </p>
+            </div>
+          )}
+
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/30 text-red-700 dark:text-red-400 p-3 rounded-xl text-xs font-bold">
+              Error dispatching visitor log: {error}
+            </div>
           )}
 
           <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2 text-xs">
@@ -263,9 +308,17 @@ export default function VisitorsLogPage() {
 
             <button
               type="submit"
-              className="sm:col-span-2 bg-primary hover:bg-primary/95 text-primary-foreground font-bold py-2.5 rounded-lg transition-colors text-center"
+              disabled={submitting}
+              className="sm:col-span-2 bg-primary hover:bg-primary/95 text-primary-foreground font-bold py-2.5 rounded-lg transition-all text-center flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Register & Check-In
+              {submitting ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin"></span>
+                  Checking in Visitor...
+                </>
+              ) : (
+                'Register & Check-In'
+              )}
             </button>
           </form>
         </div>

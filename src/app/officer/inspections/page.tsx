@@ -14,6 +14,7 @@ export default function OfficerInspectionsPage() {
   // Interactive Complete modal state
   const [completingId, setCompletingId] = useState<string | null>(null);
   const [actionsTaken, setActionsTaken] = useState('');
+  const [quarantineIssued, setQuarantineIssued] = useState(false);
 
   const handleSchedule = (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,19 +36,47 @@ export default function OfficerInspectionsPage() {
     setTimeout(() => setSubmitting(false), 3000);
   };
 
-  const handleCompleteSubmit = (e: React.FormEvent) => {
+  const handleCompleteSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!completingId) return;
+    setSubmitting(true);
 
-    setInspections(prev =>
-      prev.map(i =>
-        i.id === completingId
-          ? { ...i, status: 'COMPLETED' as const, actionsTaken }
-          : i
-      )
-    );
-    setCompletingId(null);
-    setActionsTaken('');
+    try {
+      const activeInspection = inspections.find(i => i.id === completingId);
+      const res = await fetch('/api/inspections', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          farmId: activeInspection?.farmId || mockFarms[0].id,
+          date: new Date().toISOString(),
+          notes: activeInspection?.notes || '',
+          actionsTaken,
+          quarantineIssued
+        })
+      });
+
+      if (!res.ok) throw new Error('Failed to record inspection');
+      const data = await res.json();
+
+      setInspections(prev =>
+        prev.map(i =>
+          i.id === completingId
+            ? { 
+                ...i, 
+                status: 'COMPLETED' as const, 
+                actionsTaken: actionsTaken + (quarantineIssued ? ' [QUARANTINE COMPLIANCE ENFORCED]' : '') 
+              }
+            : i
+        )
+      );
+      setCompletingId(null);
+      setActionsTaken('');
+      setQuarantineIssued(false);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -140,17 +169,34 @@ export default function OfficerInspectionsPage() {
                   placeholder="E.g., Administered antibiotics. Enforced absolute quarantine. Instructed feed disinfection..."
                   className="w-full bg-card border border-border rounded-lg p-2.5 focus:outline-none focus:border-primary text-xs"
                 ></textarea>
-                <div className="flex gap-2 justify-end">
+
+                <div className="flex items-center gap-2 py-1 select-none">
+                  <input
+                    type="checkbox"
+                    id="quarantine-issue"
+                    checked={quarantineIssued}
+                    onChange={e => setQuarantineIssued(e.target.checked)}
+                    className="w-4 h-4 rounded text-primary focus:ring-primary cursor-pointer shrink-0"
+                  />
+                  <label htmlFor="quarantine-issue" className="font-bold text-red-500 cursor-pointer text-[10px]">
+                    ⚠️ Enforce 14-day Regional Containment Quarantine Notice
+                  </label>
+                </div>
+
+                <div className="flex gap-2 justify-end pt-1">
                   <button
                     type="button"
-                    onClick={() => setCompletingId(null)}
-                    className="px-2.5 py-1.5 rounded border border-border text-[10px]"
+                    onClick={() => {
+                      setCompletingId(null);
+                      setQuarantineIssued(false);
+                    }}
+                    className="px-2.5 py-1.5 rounded border border-border text-[10px] cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-2.5 py-1.5 rounded bg-primary text-primary-foreground font-bold text-[10px]"
+                    className="px-2.5 py-1.5 rounded bg-primary text-primary-foreground font-bold text-[10px] cursor-pointer"
                   >
                     Submit Report
                   </button>
