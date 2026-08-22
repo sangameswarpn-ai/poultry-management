@@ -175,10 +175,7 @@ export default function LandingPage() {
         
         {/* Banner Section */}
         <div className="text-center max-w-3xl mb-12">
-          <span className="bg-primary/10 text-primary text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full">
-            SIH 2025 Project — SIH25006
-          </span>
-          <h2 className="mt-4 text-3xl font-extrabold tracking-tight sm:text-5xl">
+          <h2 className="text-3xl font-extrabold tracking-tight sm:text-5xl">
             {t.title}
           </h2>
           <p className="mt-4 text-base text-muted-foreground sm:text-lg">
@@ -274,7 +271,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="border-t border-border bg-card text-center py-6 text-xs text-muted-foreground">
-        <p>© 2026 PoultryLens AI. Smart India Hackathon Project ID: SIH25006.</p>
+        <p>© 2026 PoultryLens AI.</p>
         <p className="mt-1">{t.footerTitle}</p>
       </footer>
     </div>
