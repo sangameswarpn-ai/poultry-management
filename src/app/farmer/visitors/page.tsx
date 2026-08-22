@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Users, QrCode, Truck, UserPlus, History, Clock } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Users, QrCode, Truck, UserPlus, History, Clock, Camera } from 'lucide-react';
 import { mockVisitors } from '@/mock-data';
 
 export default function VisitorsLogPage() {
@@ -13,6 +13,63 @@ export default function VisitorsLogPage() {
   const [vehicleType, setVehicleType] = useState('None');
   const [disinfection, setDisinfection] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  const [cameraActive, setCameraActive] = useState(false);
+  const [scanFeedback, setScanFeedback] = useState<string | null>(null);
+
+  useEffect(() => {
+    let html5QrcodeScanner: any = null;
+    
+    if (cameraActive) {
+      // Dynamically import the browser-only scanner module to bypass SSR window errors
+      import('html5-qrcode').then((module) => {
+        const Html5QrcodeScanner = module.Html5QrcodeScanner;
+        html5QrcodeScanner = new Html5QrcodeScanner(
+          "reader",
+          { fps: 10, qrbox: { width: 250, height: 250 } },
+          /* verbose= */ false
+        );
+
+        const onScanSuccess = (decodedText: string) => {
+          try {
+            // Attempt to parse QR code as a structured visitor JSON pass
+            const data = JSON.parse(decodedText);
+            setName(data.name || '');
+            setPhone(data.phone || '');
+            setPurpose(data.purpose || '');
+            setPlateNumber(data.plateNumber || '');
+            setVehicleType(data.vehicleType || 'None');
+            setDisinfection(data.disinfectionStatus || false);
+            setScanFeedback('✓ QR Pass Scanned! Form fields auto-populated.');
+          } catch {
+            // Fallback for simple plaintext QR passes
+            setName(decodedText);
+            setPurpose('QR Audited Entry');
+            setScanFeedback('✓ QR Scanned! Plaintext Name auto-populated.');
+          }
+
+          // Shutdown scanner on success
+          if (html5QrcodeScanner) {
+            html5QrcodeScanner.clear().catch((err: any) => console.warn('Clear scanner warning:', err));
+          }
+          setCameraActive(false);
+          setTimeout(() => setScanFeedback(null), 5000);
+        };
+
+        const onScanError = (errorMessage: string) => {
+          // Fail silently on standard check-frame failures
+        };
+
+        html5QrcodeScanner.render(onScanSuccess, onScanError);
+      }).catch((err) => console.error('Error importing html5-qrcode:', err));
+    }
+
+    return () => {
+      if (html5QrcodeScanner) {
+        html5QrcodeScanner.clear().catch((err: any) => console.warn('Cleanup scanner warning:', err));
+      }
+    };
+  }, [cameraActive]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,10 +143,37 @@ export default function VisitorsLogPage() {
 
         {/* Entry Log Form */}
         <div className="bg-card border border-border rounded-xl p-5 md:col-span-2 space-y-4">
-          <h3 className="font-bold text-sm flex items-center gap-1.5 text-foreground">
-            <UserPlus size={16} className="text-primary" />
-            Manual Visitor Log-in
-          </h3>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-border/60 pb-3">
+            <h3 className="font-bold text-sm flex items-center gap-1.5 text-foreground">
+              <UserPlus size={16} className="text-primary" />
+              Manual Visitor Log-in
+            </h3>
+            
+            <button
+              type="button"
+              onClick={() => setCameraActive(!cameraActive)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-extrabold bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-all cursor-pointer shadow-sm active:scale-95"
+            >
+              <Camera size={12} />
+              {cameraActive ? 'Close Scanner' : 'Scan Visitor QR Pass'}
+            </button>
+          </div>
+
+          {scanFeedback && (
+            <p className="text-[10px] text-green-600 dark:text-green-400 font-bold bg-green-500/10 p-2.5 rounded border border-green-500/20">
+              {scanFeedback}
+            </p>
+          )}
+
+          {cameraActive && (
+            <div className="space-y-2 py-2">
+              <div id="reader" className="w-full max-w-sm mx-auto overflow-hidden border border-border rounded-xl shadow-inner bg-secondary/20 p-2"></div>
+              <p className="text-[9px] text-center text-muted-foreground leading-relaxed">
+                Hold the visitor pass QR code in front of the camera.
+                <span className="block mt-0.5 font-semibold text-primary">JSON format: name, phone, purpose, plateNumber, vehicleType, disinfectionStatus</span>
+              </p>
+            </div>
+          )}
 
           {submitted && (
             <p className="text-[10px] text-green-600 dark:text-green-400 font-bold bg-green-500/10 p-2 rounded border border-green-500/20">

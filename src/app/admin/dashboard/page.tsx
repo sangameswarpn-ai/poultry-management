@@ -1,10 +1,31 @@
 'use client';
 
+import { useState } from 'react';
 import { Sprout, ShieldAlert, Award, Landmark, Map, BarChart3, Users, ChevronRight } from 'lucide-react';
 import { mockFarms, mockRiskAlerts } from '@/mock-data';
 import Link from 'next/link';
 
 export default function AdminDashboardPage() {
+  // Advisory composer state variables
+  const [advTitle, setAdvTitle] = useState('');
+  const [advMessage, setAdvMessage] = useState('');
+  const [advSeverity, setAdvSeverity] = useState('CRITICAL');
+  const [composerFeedback, setComposerFeedback] = useState<string | null>(null);
+
+  const handleBroadcast = (e: React.FormEvent) => {
+    e.preventDefault();
+    const advisory = {
+      title: advTitle,
+      message: advMessage,
+      severity: advSeverity,
+      date: new Date().toLocaleDateString()
+    };
+    localStorage.setItem('sih_emergency_advisory', JSON.stringify(advisory));
+    setComposerFeedback('✓ Emergency Advisory broadcasted! Farmer Portal marquee active.');
+    setAdvTitle('');
+    setAdvMessage('');
+    setTimeout(() => setComposerFeedback(null), 5000);
+  };
   const totalFarms = mockFarms.length;
   const criticalCount = mockFarms.filter(f => f.riskLevel === 'CRITICAL').length;
   const highCount = mockFarms.filter(f => f.riskLevel === 'HIGH').length;
@@ -167,7 +188,68 @@ export default function AdminDashboardPage() {
           ))}
         </div>
       </div>
+      {/* Emergency Advisory Broadcast Center */}
+      <div className="bg-card border border-border rounded-xl p-5 space-y-4 colorful-card-primary">
+        <h3 className="font-bold text-sm flex items-center gap-1.5 text-foreground">
+          <ShieldAlert size={16} className="text-primary animate-pulse" />
+          Emergency Advisory & Alert Broadcast Center
+        </h3>
+        
+        {composerFeedback && (
+          <p className="text-[10px] text-green-600 dark:text-green-400 font-bold bg-green-500/10 p-2.5 rounded border border-green-500/20">
+            {composerFeedback}
+          </p>
+        )}
 
+        <form onSubmit={handleBroadcast} className="grid gap-4 sm:grid-cols-3 text-xs">
+          <div className="sm:col-span-1 space-y-3">
+            <div>
+              <label className="text-muted-foreground font-semibold block mb-1">Advisory Title</label>
+              <input
+                required
+                type="text"
+                value={advTitle}
+                onChange={e => setAdvTitle(e.target.value)}
+                placeholder="E.g., High-Alert Outbreak Warning"
+                className="w-full bg-secondary border border-border rounded-lg px-3 py-2 focus:outline-none focus:border-primary"
+              />
+            </div>
+            <div>
+              <label className="text-muted-foreground font-semibold block mb-1">Severity Badge</label>
+              <select
+                value={advSeverity}
+                onChange={e => setAdvSeverity(e.target.value)}
+                className="w-full bg-secondary border border-border rounded-lg px-3 py-2 focus:outline-none focus:border-primary"
+              >
+                <option value="CRITICAL">Critical Alert (Red)</option>
+                <option value="HIGH">High Alert (Orange)</option>
+                <option value="INFO">General Info (Green)</option>
+              </select>
+            </div>
+          </div>
+          
+          <div className="sm:col-span-2 flex flex-col justify-between space-y-3">
+            <div>
+              <label className="text-muted-foreground font-semibold block mb-1">Advisory Message Content</label>
+              <textarea
+                required
+                rows={3}
+                value={advMessage}
+                onChange={e => setAdvMessage(e.target.value)}
+                placeholder="E.g., Influenza virus detected in Namakkal. Restrict farm visitor entry and verify all gate vehicle disinfections immediately!"
+                className="w-full bg-secondary border border-border rounded-lg p-3 focus:outline-none focus:border-primary text-xs leading-relaxed"
+              ></textarea>
+            </div>
+            
+            <button
+              type="submit"
+              className="bg-primary hover:bg-primary/95 text-primary-foreground font-bold py-2.5 px-4 rounded-xl transition-colors shadow-sm cursor-pointer text-center"
+            >
+              Broadcast Emergency Advisory Ticker
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

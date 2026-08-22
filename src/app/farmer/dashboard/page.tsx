@@ -36,6 +36,18 @@ export default function FarmerDashboard() {
   const [farm, setFarm] = useState<FarmData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [advisory, setAdvisory] = useState<{ title: string; message: string; severity: string; date: string } | null>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('sih_emergency_advisory');
+    if (saved) {
+      try {
+        setAdvisory(JSON.parse(saved));
+      } catch (e) {
+        console.error('Error parsing local advisory:', e);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     // Fetch Sri Murugan Layer Farm (frm-1) dynamically
@@ -92,6 +104,44 @@ export default function FarmerDashboard() {
 
   return (
     <div className="space-y-6">
+      
+      {/* Broadcast Advisory Marquee Bar */}
+      {advisory && (
+        <div className={`p-3 rounded-xl border flex items-center justify-between text-xs font-bold gap-4 overflow-hidden relative shadow-sm ${
+          advisory.severity === 'CRITICAL' 
+            ? 'bg-risk-critical/15 text-risk-critical border-risk-critical/30' 
+            : advisory.severity === 'HIGH'
+            ? 'bg-risk-high/15 text-risk-high border-risk-high/30'
+            : 'bg-risk-low/15 text-risk-low border-risk-low/30'
+        }`}>
+          <div className="flex items-center gap-2 shrink-0">
+            <span className={`animate-ping w-2 h-2 rounded-full ${
+              advisory.severity === 'CRITICAL' ? 'bg-risk-critical' : advisory.severity === 'HIGH' ? 'bg-risk-high' : 'bg-risk-low'
+            }`}></span>
+            <span className="uppercase tracking-wider font-extrabold text-[10px] bg-card border border-current px-2 py-0.5 rounded">
+              {advisory.title || 'Emergency Advisory'}
+            </span>
+          </div>
+          
+          {/* Marquee Text */}
+          <div className="flex-1 overflow-hidden relative h-5">
+            <div className="animate-marquee whitespace-nowrap absolute font-semibold text-[11px] mt-0.5 text-foreground">
+              {advisory.message} — Published on {advisory.date}
+            </div>
+          </div>
+
+          <button 
+            type="button"
+            onClick={() => {
+              localStorage.removeItem('sih_emergency_advisory');
+              setAdvisory(null);
+            }}
+            className="text-muted-foreground hover:text-foreground hover:scale-110 transition-transform text-[10px] font-bold border border-border bg-card px-2 py-0.5 rounded shrink-0 cursor-pointer"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
       
       {/* Welcome Banner */}
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between border-b border-border pb-4 bg-gradient-to-r from-emerald-500/10 to-amber-500/5 p-4 rounded-xl border">

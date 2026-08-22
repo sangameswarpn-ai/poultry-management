@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { 
@@ -9,7 +10,8 @@ import {
   Users, 
   CalendarRange, 
   Eye,
-  AlertCircle
+  AlertCircle,
+  Sparkles
 } from 'lucide-react';
 import { mockFarms, mockRiskAlerts } from '@/mock-data';
 
@@ -17,13 +19,18 @@ import { mockFarms, mockRiskAlerts } from '@/mock-data';
 const RiskMap = dynamic(() => import('@/components/maps/risk-map'), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-[400px] bg-secondary/20 rounded-xl border border-border animate-pulse flex items-center justify-center text-xs text-muted-foreground">
+    <div className="w-full h-[450px] bg-secondary/20 rounded-xl border border-border animate-pulse flex items-center justify-center text-xs text-muted-foreground">
       Loading GIS Map module...
     </div>
   )
 });
 
 export default function OfficerDashboard() {
+  // Simulation Sandbox State Hooks
+  const [filterRisk, setFilterRisk] = useState('ALL');
+  const [showBuffers, setShowBuffers] = useState(true);
+  const [simMortality, setSimMortality] = useState(20);
+  const [simCompliance, setSimCompliance] = useState(92);
   // Count farms by risk level
   const totalFarms = mockFarms.length;
   const criticalCount = mockFarms.filter(f => f.riskLevel === 'CRITICAL').length;
@@ -81,18 +88,110 @@ export default function OfficerDashboard() {
         ))}
       </div>
 
-      {/* GIS Mapping Grid */}
-      <div className="bg-card border border-border rounded-xl p-5 space-y-3">
-        <div className="flex justify-between items-center">
-          <h3 className="font-bold text-sm flex items-center gap-1.5">
-            <MapPin size={16} className="text-primary" />
-            GIS Outbreak & Infection Distribution Grid
-          </h3>
-          <span className="text-[10px] bg-secondary border border-border px-2 py-0.5 rounded font-mono">
-            Centred on Namakkal, TN
-          </span>
+      {/* GIS Mapping Grid with Simulation Sandbox */}
+      <div className="grid gap-6 md:grid-cols-4">
+        {/* Left 3 cols: Map */}
+        <div className="bg-card border border-border rounded-xl p-5 space-y-3 md:col-span-3">
+          <div className="flex justify-between items-center pb-2 border-b border-border/60">
+            <h3 className="font-bold text-sm flex items-center gap-1.5 text-foreground">
+              <MapPin size={16} className="text-primary" />
+              GIS Outbreak & Infection Distribution Grid
+            </h3>
+            <span className="text-[10px] bg-secondary border border-border px-2 py-0.5 rounded font-mono">
+              Centred on Namakkal, TN
+            </span>
+          </div>
+          <RiskMap 
+            filterRisk={filterRisk}
+            showBuffers={showBuffers}
+            simMortality={simMortality}
+            simCompliance={simCompliance}
+          />
         </div>
-        <RiskMap />
+        
+        {/* Right 1 col: Simulation Controls Panel */}
+        <div className="bg-card border border-border rounded-xl p-5 space-y-5 flex flex-col justify-between">
+          <div>
+            <h3 className="font-bold text-sm flex items-center gap-1.5 text-foreground border-b border-border/60 pb-2">
+              <Sparkles size={16} className="text-accent animate-pulse" />
+              GIS Sandbox Simulator
+            </h3>
+            
+            {/* Risk Level Filter */}
+            <div className="space-y-1.5 text-xs mt-4">
+              <label className="text-muted-foreground font-semibold">Filter Map Nodes</label>
+              <select
+                value={filterRisk}
+                onChange={(e) => setFilterRisk(e.target.value)}
+                className="w-full bg-secondary border border-border rounded-lg px-2.5 py-1.5 focus:outline-none"
+              >
+                <option value="ALL">All Nodes</option>
+                <option value="LOW">Low Risk</option>
+                <option value="MEDIUM">Medium Risk</option>
+                <option value="HIGH">High Risk</option>
+                <option value="CRITICAL">Critical Risk</option>
+              </select>
+            </div>
+
+            {/* Containment Ring Toggle */}
+            <div className="flex items-center justify-between text-xs p-2.5 border border-border rounded-xl bg-secondary/30 mt-4">
+              <label htmlFor="buffers-toggle" className="font-bold text-foreground cursor-pointer">
+                Show GIS Buffers
+              </label>
+              <input
+                type="checkbox"
+                id="buffers-toggle"
+                checked={showBuffers}
+                onChange={(e) => setShowBuffers(e.target.checked)}
+                className="w-4 h-4 rounded text-primary focus:ring-primary cursor-pointer shrink-0"
+              />
+            </div>
+
+            {/* Sliders for Sri Murugan Farm simulation */}
+            <div className="space-y-4 border-t border-border pt-4 mt-4">
+              <h4 className="text-[10px] font-extrabold uppercase tracking-wider text-primary">Simulate Farm-1 (Sri Murugan)</h4>
+
+              {/* Mortality Rate Slider */}
+              <div className="space-y-1 text-xs">
+                <div className="flex justify-between font-bold">
+                  <span className="text-muted-foreground">Flock Mortality</span>
+                  <span className="text-risk-critical">{simMortality} birds</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={simMortality}
+                  onChange={(e) => setSimMortality(parseInt(e.target.value))}
+                  className="w-full h-1.5 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary"
+                />
+              </div>
+
+              {/* Compliance Slider */}
+              <div className="space-y-1 text-xs">
+                <div className="flex justify-between font-bold">
+                  <span className="text-muted-foreground">Biosecurity Compliance</span>
+                  <span className="text-primary">{simCompliance}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="20"
+                  max="100"
+                  value={simCompliance}
+                  onChange={(e) => setSimCompliance(parseInt(e.target.value))}
+                  className="w-full h-1.5 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary"
+                />
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-secondary/40 p-2.5 rounded-lg border border-border/80">
+            <p className="text-[9px] text-muted-foreground leading-relaxed font-mono">
+              <span className="font-bold text-foreground block mb-0.5">Sandbox Instructions:</span>
+              Sliders trigger threat engines and dynamically render containment circles on the map.
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Two columns: Alerts & Quick Action list */}

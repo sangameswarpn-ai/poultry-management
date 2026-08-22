@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { FileText, Check, AlertCircle, Camera, Mic, Volume2 } from 'lucide-react';
+import { FileText, Check, AlertCircle, Camera, Mic, Volume2, Sparkles } from 'lucide-react';
 import { mockDiseaseReports } from '@/mock-data';
 
 export default function ReportDiseasePage() {
@@ -38,6 +38,49 @@ export default function ReportDiseasePage() {
     setVoiceProof(false);
     setSubmitted(true);
     setTimeout(() => setSubmitted(false), 4000);
+  };
+
+  const getDiagnosis = () => {
+    if (symptoms.length === 0) return null;
+    
+    let scores = [
+      { 
+        disease: "Highly Pathogenic Avian Influenza (Bird Flu)", 
+        matchCount: 0,
+        symptoms: ["Sudden death", "Breathing difficulty", "Fever", "Loss of appetite"],
+        action: "CRITICAL: Immediately isolate the flock. No personnel entry. Trigger alert to Veterinary Board for emergency vaccination and depopulation."
+      },
+      { 
+        disease: "Newcastle Disease (Ranikhet Disease)", 
+        matchCount: 0,
+        symptoms: ["Breathing difficulty", "Cough", "Diarrhea", "Loss of appetite"],
+        action: "HIGH: Quarantine infected pen. Administer supportive vitamins. Restrict farm gate traffic immediately."
+      },
+      { 
+        disease: "Avian Coccidiosis", 
+        matchCount: 0,
+        symptoms: ["Diarrhea", "Fever", "Loss of appetite"],
+        action: "MEDIUM: Check feed/litter moisture. Administer anticoccidials in water supply. Disinfect house gates."
+      },
+      { 
+        disease: "Infectious Bronchitis (IB)", 
+        matchCount: 0,
+        symptoms: ["Cough", "Breathing difficulty", "Loss of appetite"],
+        action: "MEDIUM: Improve ventilation. Spray virucidal disinfectant aerosols. Notify veterinary doctor."
+      }
+    ];
+
+    const mapped = scores.map(s => {
+      const match = s.symptoms.filter(sym => symptoms.includes(sym)).length;
+      return {
+        ...s,
+        matchCount: match,
+        percentage: Math.round((match / s.symptoms.length) * 100)
+      };
+    });
+
+    mapped.sort((a, b) => b.percentage - a.percentage);
+    return mapped.filter(s => s.matchCount > 0);
   };
 
   const getStatusBadge = (status: string) => {
@@ -150,32 +193,74 @@ export default function ReportDiseasePage() {
           </form>
         </div>
 
-        {/* History Grid */}
-        <div className="bg-card border border-border rounded-xl p-5 space-y-4">
-          <h3 className="font-bold text-sm">Dispatched Report Queue</h3>
+        {/* Right Column: AI Diagnostic Panel & History Queue */}
+        <div className="space-y-6">
+          
+          {/* AI Diagnostic Panel */}
+          <div className="bg-card border border-border rounded-xl p-5 space-y-4 colorful-card-accent">
+            <h3 className="font-bold text-sm flex items-center gap-1.5 text-foreground">
+              <Sparkles size={16} className="text-accent animate-pulse" />
+              Symptom Diagnostic Analyzer
+            </h3>
 
-          <div className="space-y-4 max-h-[350px] overflow-y-auto pr-1">
-            {reports.map((rep) => (
-              <div key={rep.id} className="border border-border p-3 rounded-lg space-y-2 text-xs">
-                <div className="flex justify-between items-center">
-                  <span className="font-mono text-[9px] text-muted-foreground">
-                    {new Date(rep.date).toLocaleDateString([], { month: 'short', day: 'numeric' })}
-                  </span>
-                  <span className={`px-2 py-0.5 rounded text-[9px] font-bold border ${getStatusBadge(rep.status)}`}>
-                    {rep.status}
-                  </span>
-                </div>
-                
-                <p className="font-bold text-foreground truncate">
-                  Symptoms: {rep.symptoms.join(', ') || 'General Lapses'}
-                </p>
-                
-                <p className="text-[11px] text-muted-foreground leading-relaxed font-mono">
-                  {rep.notes}
-                </p>
+            {symptoms.length === 0 ? (
+              <p className="text-[10px] text-muted-foreground leading-relaxed">
+                Select clinical symptoms on the left. The local diagnostic engine will calculate match confidence for common infectious outbreaks.
+              </p>
+            ) : (
+              <div className="space-y-4">
+                {getDiagnosis()?.map((diag, index) => (
+                  <div key={index} className="border border-border/80 p-3 rounded-lg bg-secondary/20 space-y-1.5 text-xs">
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-foreground text-[11px] truncate max-w-[150px]">{diag.disease}</span>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold ${diag.percentage >= 70 ? 'bg-risk-critical/10 text-risk-critical' : diag.percentage >= 40 ? 'bg-risk-medium/10 text-risk-medium' : 'bg-risk-low/10 text-risk-low'}`}>
+                        {diag.percentage}% Match
+                      </span>
+                    </div>
+                    <div className="w-full bg-border/40 h-1.5 rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full rounded-full ${diag.percentage >= 70 ? 'bg-risk-critical' : diag.percentage >= 40 ? 'bg-risk-medium' : 'bg-risk-low'}`} 
+                        style={{ width: `${diag.percentage}%` }}
+                      />
+                    </div>
+                    <p className="text-[9px] text-muted-foreground leading-relaxed mt-1 font-mono">
+                      <span className="font-bold text-foreground block">Containment:</span>
+                      {diag.action}
+                    </p>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
           </div>
+
+          {/* Dispatched Report Queue */}
+          <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+            <h3 className="font-bold text-sm">Dispatched Report Queue</h3>
+
+            <div className="space-y-4 max-h-[220px] overflow-y-auto pr-1">
+              {reports.map((rep) => (
+                <div key={rep.id} className="border border-border p-3 rounded-lg space-y-2 text-xs">
+                  <div className="flex justify-between items-center">
+                    <span className="font-mono text-[9px] text-muted-foreground">
+                      {new Date(rep.date).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                    </span>
+                    <span className={`px-2 py-0.5 rounded text-[9px] font-bold border ${getStatusBadge(rep.status)}`}>
+                      {rep.status}
+                    </span>
+                  </div>
+                  
+                  <p className="font-bold text-foreground truncate">
+                    Symptoms: {rep.symptoms.join(', ') || 'General Lapses'}
+                  </p>
+                  
+                  <p className="text-[11px] text-muted-foreground leading-relaxed font-mono truncate">
+                    {rep.notes}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
         </div>
 
       </div>
