@@ -57,6 +57,10 @@ export default function FarmerDashboard() {
         console.error('Error parsing local advisory:', e);
       }
     }
+    const savedSpecies = localStorage.getItem('sih_selected_species');
+    if (savedSpecies && ['POULTRY', 'CATTLE', 'GOAT', 'PIG'].includes(savedSpecies)) {
+      setSelectedSpecies(savedSpecies as any);
+    }
   }, []);
 
   useEffect(() => {
@@ -229,7 +233,10 @@ export default function FarmerDashboard() {
             <button
               key={sp}
               type="button"
-              onClick={() => setSelectedSpecies(sp)}
+              onClick={() => {
+                setSelectedSpecies(sp);
+                localStorage.setItem('sih_selected_species', sp);
+              }}
               className={`p-3 rounded-xl border-2 text-xs font-bold text-center flex items-center justify-center gap-2 cursor-pointer transition-all shadow-sm active:scale-95 ${
                 isActive 
                   ? `${info.color} border-primary text-primary` 
