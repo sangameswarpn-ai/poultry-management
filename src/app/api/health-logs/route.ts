@@ -11,7 +11,8 @@ export async function POST(request: Request) {
       sickCount, 
       mortalityCount, 
       symptoms = [], 
-      notes = '' 
+      notes = '',
+      species = 'POULTRY'
     } = body;
 
     if (!farmId) {
@@ -52,6 +53,7 @@ export async function POST(request: Request) {
           sickCount: sCount,
           mortalityCount: mCount,
           notes: notes || null,
+          species: species as any,
           symptoms: {
             create: symptomEntities.map((s) => ({
               symptomId: s.id

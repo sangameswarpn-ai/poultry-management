@@ -26,6 +26,7 @@ export interface MockFarm {
   sickCount: number;
   mortalityCount: number; // deaths today
   symptoms: string[];
+  species: 'POULTRY' | 'CATTLE' | 'GOAT' | 'PIG';
 }
 
 export interface MockBiosecurityRecord {
@@ -51,6 +52,7 @@ export interface MockHealthRecord {
   mortalityCount: number;
   symptoms: string[];
   notes?: string;
+  species: 'POULTRY' | 'CATTLE' | 'GOAT' | 'PIG';
 }
 
 export interface MockRiskAssessment {
@@ -100,6 +102,7 @@ export interface MockDiseaseReport {
   voiceUrl?: string;
   status: 'SUBMITTED' | 'UNDER_REVIEW' | 'INVESTIGATION' | 'RESOLVED';
   date: string;
+  species: 'POULTRY' | 'CATTLE' | 'GOAT' | 'PIG';
 }
 
 export interface MockInspection {
@@ -155,7 +158,8 @@ export const mockFarms: MockFarm[] = [
     healthyCount: 9980,
     sickCount: 20,
     mortalityCount: 1,
-    symptoms: []
+    symptoms: [],
+    species: "POULTRY"
   },
   {
     id: "frm-2",
@@ -174,7 +178,8 @@ export const mockFarms: MockFarm[] = [
     healthyCount: 11950,
     sickCount: 48,
     mortalityCount: 2,
-    symptoms: []
+    symptoms: [],
+    species: "POULTRY"
   },
   {
     id: "frm-3",
@@ -193,7 +198,8 @@ export const mockFarms: MockFarm[] = [
     healthyCount: 8410,
     sickCount: 82,
     mortalityCount: 8,
-    symptoms: ["Cough", "Loss of appetite"]
+    symptoms: ["Cough", "Loss of appetite"],
+    species: "POULTRY"
   },
   {
     id: "frm-4",
@@ -212,7 +218,8 @@ export const mockFarms: MockFarm[] = [
     healthyCount: 4850,
     sickCount: 125,
     mortalityCount: 25,
-    symptoms: ["Cough", "Fever", "Breathing difficulty"]
+    symptoms: ["Cough", "Fever", "Breathing difficulty"],
+    species: "POULTRY"
   },
   {
     id: "frm-5",
@@ -231,7 +238,8 @@ export const mockFarms: MockFarm[] = [
     healthyCount: 14200,
     sickCount: 650,
     mortalityCount: 150,
-    symptoms: ["Sudden death", "Diarrhea", "Breathing difficulty"]
+    symptoms: ["Sudden death", "Diarrhea", "Breathing difficulty"],
+    species: "POULTRY"
   },
   {
     id: "frm-6",
@@ -250,12 +258,13 @@ export const mockFarms: MockFarm[] = [
     healthyCount: 8975,
     sickCount: 22,
     mortalityCount: 3,
-    symptoms: []
+    symptoms: [],
+    species: "POULTRY"
   },
   // Sub-district 2
   {
     id: "frm-7",
-    name: "Kongu Hatchery & Farm",
+    name: "Kongu Cattle & Dairy Farm",
     farmerId: "usr-1",
     farmerName: "Ramesh Kumar",
     farmerPhone: "+91 98765 43210",
@@ -266,15 +275,16 @@ export const mockFarms: MockFarm[] = [
     state: "Tamil Nadu",
     biosecurityScore: 88,
     riskLevel: "LOW",
-    totalAnimals: 22000,
-    healthyCount: 21960,
-    sickCount: 35,
-    mortalityCount: 5,
-    symptoms: []
+    totalAnimals: 150,
+    healthyCount: 146,
+    sickCount: 3,
+    mortalityCount: 1,
+    symptoms: [],
+    species: "CATTLE"
   },
   {
     id: "frm-8",
-    name: "Malar Poultry Centre",
+    name: "Malar Dairy Farm",
     farmerId: "usr-2",
     farmerName: "Rajesh Selvan",
     farmerPhone: "+91 98765 43211",
@@ -285,15 +295,16 @@ export const mockFarms: MockFarm[] = [
     state: "Tamil Nadu",
     biosecurityScore: 68,
     riskLevel: "MEDIUM",
-    totalAnimals: 7500,
-    healthyCount: 7420,
-    sickCount: 72,
-    mortalityCount: 8,
-    symptoms: ["Diarrhea"]
+    totalAnimals: 80,
+    healthyCount: 78,
+    sickCount: 2,
+    mortalityCount: 0,
+    symptoms: ["Diarrhea"],
+    species: "CATTLE"
   },
   {
     id: "frm-9",
-    name: "Apex Broilers",
+    name: "Apex Dairy Cattle",
     farmerId: "usr-3",
     farmerName: "Suresh Pillai",
     farmerPhone: "+91 98765 43212",
@@ -304,15 +315,16 @@ export const mockFarms: MockFarm[] = [
     state: "Tamil Nadu",
     biosecurityScore: 42,
     riskLevel: "HIGH",
-    totalAnimals: 11000,
-    healthyCount: 10750,
-    sickCount: 210,
-    mortalityCount: 40,
-    symptoms: ["Breathing difficulty", "Loss of appetite"]
+    totalAnimals: 110,
+    healthyCount: 105,
+    sickCount: 5,
+    mortalityCount: 0,
+    symptoms: ["Loss of appetite"],
+    species: "CATTLE"
   },
   {
     id: "frm-10",
-    name: "Raja Layer & Pullets",
+    name: "Raja Goat Breeding Farm",
     farmerId: "usr-4",
     farmerName: "Mohan Lal",
     farmerPhone: "+91 98765 43213",
@@ -323,15 +335,16 @@ export const mockFarms: MockFarm[] = [
     state: "Tamil Nadu",
     biosecurityScore: 78,
     riskLevel: "LOW",
-    totalAnimals: 13500,
-    healthyCount: 13455,
-    sickCount: 40,
-    mortalityCount: 5,
-    symptoms: []
+    totalAnimals: 420,
+    healthyCount: 415,
+    sickCount: 4,
+    mortalityCount: 1,
+    symptoms: [],
+    species: "GOAT"
   },
   {
     id: "frm-11",
-    name: "Sowmya Duck & Poultry",
+    name: "Sowmya Goat Farm",
     farmerId: "usr-5",
     farmerName: "Ram Swaroop",
     farmerPhone: "+91 98765 43214",
@@ -342,68 +355,72 @@ export const mockFarms: MockFarm[] = [
     state: "Tamil Nadu",
     biosecurityScore: 94,
     riskLevel: "LOW",
-    totalAnimals: 4000,
-    healthyCount: 3995,
-    sickCount: 5,
+    totalAnimals: 240,
+    healthyCount: 238,
+    sickCount: 2,
     mortalityCount: 0,
-    symptoms: []
+    symptoms: [],
+    species: "GOAT"
   },
   {
     id: "frm-12",
-    name: "Coimbatore Pioneer Farm",
+    name: "Coimbatore Goat Breeding",
     farmerId: "usr-6",
     farmerName: "Gopal Sundaram",
     farmerPhone: "+91 98765 43215",
     lat: 11.0180,
-    lng: 76.9550, // Coimbatore
+    lng: 76.9550,
     address: "Pollachi Road, Coimbatore",
     district: "Coimbatore",
     state: "Tamil Nadu",
     biosecurityScore: 82,
     riskLevel: "LOW",
-    totalAnimals: 18000,
-    healthyCount: 17920,
-    sickCount: 75,
-    mortalityCount: 5,
-    symptoms: []
+    totalAnimals: 310,
+    healthyCount: 308,
+    sickCount: 2,
+    mortalityCount: 0,
+    symptoms: [],
+    species: "GOAT"
   },
   {
     id: "frm-13",
-    name: "Vellore Layer Grid",
+    name: "Vellore Goat & Sheep Grid",
     farmerId: "usr-1",
     farmerName: "Ramesh Kumar",
     farmerPhone: "+91 98765 43210",
     lat: 12.9160,
-    lng: 79.1320, // Vellore
+    lng: 79.1320,
     address: "Katpadi Road, Vellore",
     district: "Vellore",
     state: "Tamil Nadu",
     biosecurityScore: 50,
     riskLevel: "HIGH",
-    totalAnimals: 14000,
-    healthyCount: 13620,
-    sickCount: 310,
-    mortalityCount: 70,
-    symptoms: ["Sudden death", "Fever"]
+    totalAnimals: 180,
+    healthyCount: 175,
+    sickCount: 4,
+    mortalityCount: 1,
+    symptoms: ["Fever"],
+    species: "GOAT"
   },
   {
     id: "frm-14",
-    name: "Salem Broiler Trust",
+    name: "Salem Pig Breeding Farm",
     farmerId: "usr-2",
     farmerName: "Rajesh Selvan",
     farmerPhone: "+91 98765 43211",
     lat: 11.6640,
-    lng: 78.1460, // Salem
+    lng: 78.1460,
     address: "Omalur Bypass Road, Salem",
     district: "Salem",
     state: "Tamil Nadu",
     biosecurityScore: 70,
     riskLevel: "MEDIUM",
-    totalAnimals: 9500,
-    healthyCount: 9415,
-    sickCount: 70,
-    mortalityCount: 15,
-    symptoms: ["Cough"]
+    totalAnimals: 90,
+    healthyCount: 88,
+    sickCount: 2,
+    mortalityCount: 0,
+    symptoms: ["Cough"],
+    species: "PIG"
   },
   {
     id: "frm-15",
@@ -422,7 +439,28 @@ export const mockFarms: MockFarm[] = [
     healthyCount: 1999,
     sickCount: 1,
     mortalityCount: 0,
-    symptoms: []
+    symptoms: [],
+    species: "POULTRY"
+  },
+  {
+    id: "frm-16",
+    name: "Ramesh Pig Breeder Station",
+    farmerId: "usr-1",
+    farmerName: "Ramesh Kumar",
+    farmerPhone: "+91 98765 43210",
+    lat: 11.2350,
+    lng: 78.1650,
+    address: "SF-45, Senthamangalam Taluk, Namakkal",
+    district: "Namakkal",
+    state: "Tamil Nadu",
+    biosecurityScore: 82,
+    riskLevel: "LOW",
+    totalAnimals: 350,
+    healthyCount: 345,
+    sickCount: 5,
+    mortalityCount: 0,
+    symptoms: [],
+    species: "PIG"
   }
 ];
 
@@ -447,11 +485,14 @@ for (let d = 0; d < days; d++) {
   const dateStr = new Date(Date.now() - d * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
   
   mockHealthRecords.push(
-    { id: `hlth-1-${d}`, farmId: "frm-1", date: dateStr, totalAnimals: 10000, healthyCount: 9980, sickCount: 19, mortalityCount: 1, symptoms: [] },
-    { id: `hlth-2-${d}`, farmId: "frm-2", date: dateStr, totalAnimals: 12000, healthyCount: 11950, sickCount: 48, mortalityCount: 2, symptoms: [] },
-    { id: `hlth-3-${d}`, farmId: "frm-3", date: dateStr, totalAnimals: 8500, healthyCount: 8410, sickCount: 82, mortalityCount: d === 0 ? 8 : 2, symptoms: d === 0 ? ["Cough", "Loss of appetite"] : [] },
-    { id: `hlth-4-${d}`, farmId: "frm-4", date: dateStr, totalAnimals: 5000, healthyCount: 4850, sickCount: 125, mortalityCount: d === 0 ? 25 : 5, symptoms: d === 0 ? ["Cough", "Fever", "Breathing difficulty"] : ["Cough"] },
-    { id: `hlth-5-${d}`, farmId: "frm-5", date: dateStr, totalAnimals: 15000, healthyCount: 14200, sickCount: 650, mortalityCount: d === 0 ? 150 : 25, symptoms: ["Sudden death", "Diarrhea", "Breathing difficulty"] }
+    { id: `hlth-1-${d}`, farmId: "frm-1", date: dateStr, totalAnimals: 10000, healthyCount: 9980, sickCount: 19, mortalityCount: 1, symptoms: [], species: "POULTRY" },
+    { id: `hlth-2-${d}`, farmId: "frm-2", date: dateStr, totalAnimals: 12000, healthyCount: 11950, sickCount: 48, mortalityCount: 2, symptoms: [], species: "POULTRY" },
+    { id: `hlth-3-${d}`, farmId: "frm-3", date: dateStr, totalAnimals: 8500, healthyCount: 8410, sickCount: 82, mortalityCount: d === 0 ? 8 : 2, symptoms: d === 0 ? ["Cough", "Loss of appetite"] : [], species: "POULTRY" },
+    { id: `hlth-4-${d}`, farmId: "frm-4", date: dateStr, totalAnimals: 5000, healthyCount: 4850, sickCount: 125, mortalityCount: d === 0 ? 25 : 5, symptoms: d === 0 ? ["Cough", "Fever", "Breathing difficulty"] : ["Cough"], species: "POULTRY" },
+    { id: `hlth-5-${d}`, farmId: "frm-5", date: dateStr, totalAnimals: 15000, healthyCount: 14200, sickCount: 650, mortalityCount: d === 0 ? 150 : 25, symptoms: ["Sudden death", "Diarrhea", "Breathing difficulty"], species: "POULTRY" },
+    { id: `hlth-7-${d}`, farmId: "frm-7", date: dateStr, totalAnimals: 150, healthyCount: 146, sickCount: 3, mortalityCount: d === 0 ? 1 : 0, symptoms: [], species: "CATTLE" },
+    { id: `hlth-13-${d}`, farmId: "frm-13", date: dateStr, totalAnimals: 180, healthyCount: 175, sickCount: 4, mortalityCount: d === 0 ? 1 : 0, symptoms: [], species: "GOAT" },
+    { id: `hlth-16-${d}`, farmId: "frm-16", date: dateStr, totalAnimals: 350, healthyCount: 345, sickCount: 5, mortalityCount: 0, symptoms: [], species: "PIG" }
   );
 }
 
@@ -609,7 +650,8 @@ export const mockDiseaseReports: MockDiseaseReport[] = [
     notes: "Sudden increase in death count since morning. Swollen combs and wattles. Requesting immediate investigation.",
     status: "SUBMITTED",
     date: new Date().toISOString(),
-    photoUrl: "/images/mock-symptom-poultry.jpg"
+    photoUrl: "/images/mock-symptom-poultry.jpg",
+    species: "POULTRY"
   },
   {
     id: "rep-2",
@@ -619,7 +661,8 @@ export const mockDiseaseReports: MockDiseaseReport[] = [
     symptoms: ["Cough", "Loss of appetite"],
     notes: "Birds are gasping for air and making a gurgling sound. Feeding has dropped by 30%.",
     status: "INVESTIGATION",
-    date: new Date(Date.now() - 24 * 3600000).toISOString()
+    date: new Date(Date.now() - 24 * 3600000).toISOString(),
+    species: "POULTRY"
   }
 ];
 

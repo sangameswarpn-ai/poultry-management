@@ -28,7 +28,8 @@ export default function ReportDiseasePage() {
       symptoms,
       notes,
       status: 'SUBMITTED' as const,
-      date: new Date().toISOString()
+      date: new Date().toISOString(),
+      species: 'POULTRY' as const
     };
 
     setReports([newReport, ...reports]);

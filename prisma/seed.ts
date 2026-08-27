@@ -73,7 +73,8 @@ async function main() {
         district: f.district,
         state: f.state,
         biosecurityScore: f.biosecurityScore,
-        riskLevel: f.riskLevel
+        riskLevel: f.riskLevel,
+        species: f.species
       }
     });
     farmMap[f.id] = createdFarm.id;
@@ -107,7 +108,8 @@ async function main() {
         healthyCount: h.healthyCount,
         sickCount: h.sickCount,
         mortalityCount: h.mortalityCount,
-        notes: h.notes || null
+        notes: h.notes || null,
+        species: h.species
       }
     });
 
@@ -204,6 +206,7 @@ async function main() {
         reportedById: farmer.id,
         notes: dr.notes,
         status: dr.status,
+        species: dr.species || 'POULTRY',
         createdAt: new Date(dr.date)
       }
     });

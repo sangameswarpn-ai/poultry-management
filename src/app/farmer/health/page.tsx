@@ -1,16 +1,24 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { HeartPulse, Plus, Minus, Check, ClipboardCheck } from 'lucide-react';
 import { mockFarms } from '@/mock-data';
 
 export default function FlockHealthPage() {
-  const farm = mockFarms[0]; // Sri Murugan Layer Farm
+  const [selectedSpecies, setSelectedSpecies] = useState<'POULTRY' | 'CATTLE' | 'GOAT' | 'PIG'>('POULTRY');
+
+  const activeFarm = selectedSpecies === 'CATTLE'
+    ? (mockFarms.find(f => f.id === 'frm-7') || mockFarms[0])
+    : selectedSpecies === 'GOAT'
+    ? (mockFarms.find(f => f.id === 'frm-13') || mockFarms[0])
+    : selectedSpecies === 'PIG'
+    ? (mockFarms.find(f => f.id === 'frm-16') || mockFarms[0])
+    : mockFarms[0];
   
-  const [totalAnimals, setTotalAnimals] = useState(farm.totalAnimals);
-  const [healthyCount, setHealthyCount] = useState(farm.healthyCount);
-  const [sickCount, setSickCount] = useState(farm.sickCount);
-  const [deathsCount, setDeathsCount] = useState(farm.mortalityCount);
+  const [totalAnimals, setTotalAnimals] = useState(activeFarm.totalAnimals);
+  const [healthyCount, setHealthyCount] = useState(activeFarm.healthyCount);
+  const [sickCount, setSickCount] = useState(activeFarm.sickCount);
+  const [deathsCount, setDeathsCount] = useState(activeFarm.mortalityCount);
   
   const [symptoms, setSymptoms] = useState<string[]>([]);
   const [notes, setNotes] = useState('');
@@ -18,6 +26,15 @@ export default function FlockHealthPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [riskResult, setRiskResult] = useState<{ recordId: string; riskIndex: number; riskLevel: string; mode: string } | null>(null);
+
+  useEffect(() => {
+    setTotalAnimals(activeFarm.totalAnimals);
+    setHealthyCount(activeFarm.healthyCount);
+    setSickCount(activeFarm.sickCount);
+    setDeathsCount(activeFarm.mortalityCount);
+    setSymptoms([]);
+    setNotes('');
+  }, [selectedSpecies, activeFarm]);
 
   const toggleSymptom = (symptom: string) => {
     setSymptoms(prev => 
@@ -72,13 +89,14 @@ export default function FlockHealthPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          farmId: 'frm-1', // Default Sri Murugan Farm
+          farmId: activeFarm.id,
           totalAnimals,
           healthyCount,
           sickCount,
           mortalityCount: deathsCount,
           symptoms,
-          notes
+          notes,
+          species: selectedSpecies
         })
       });
 
@@ -102,17 +120,62 @@ export default function FlockHealthPage() {
     }
   };
 
-  const symptomsList = [
-    "Cough", "Fever", "Diarrhea", "Breathing difficulty", "Loss of appetite", "Sudden death"
-  ];
+  const getSymptomsList = () => {
+    switch (selectedSpecies) {
+      case 'CATTLE':
+        return ["Mouth lesions", "Excessive salivation", "Milk yield drop", "Lameness", "Bloating", "High fever"];
+      case 'GOAT':
+        return ["Skin lesions", "Cough", "Respiratory discharge", "Diarrhea", "Weight loss"];
+      case 'PIG':
+        return ["Skin blotches", "High fever", "Lethargy", "Breathing difficulty", "Diarrhea"];
+      default:
+        return ["Cough", "Fever", "Diarrhea", "Breathing difficulty", "Loss of appetite", "Sudden death"];
+    }
+  };
+  const symptomsList = getSymptomsList();
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
       
       {/* Title */}
-      <div className="border-b border-border pb-4">
-        <h2 className="text-xl font-bold tracking-tight">Record Daily Health & Mortality</h2>
-        <p className="text-xs text-muted-foreground">Log mortality anomalies and clinical symptoms for the Risk Engine</p>
+      <div className="border-b border-border pb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-bold tracking-tight">
+            Record Daily {selectedSpecies === 'POULTRY' ? 'Flock' : selectedSpecies === 'CATTLE' ? 'Cattle' : selectedSpecies === 'GOAT' ? 'Goat' : 'Swine'} Health & Mortality
+          </h2>
+          <p className="text-xs text-muted-foreground">Log mortality anomalies and clinical symptoms for the Risk Engine</p>
+        </div>
+        
+        {/* Category Switcher Tabs */}
+        <div className="grid grid-cols-4 gap-1.5 border border-border bg-card p-1 rounded-xl shrink-0 self-start">
+          {(['POULTRY', 'CATTLE', 'GOAT', 'PIG'] as const).map((sp) => {
+            const isActive = selectedSpecies === sp;
+            const getSpeciesInfo = (s: string) => {
+              switch (s) {
+                case 'CATTLE': return { label: 'Cows', icon: '🐄' };
+                case 'GOAT': return { label: 'Goats', icon: '🐐' };
+                case 'PIG': return { label: 'Pigs', icon: '🐖' };
+                default: return { label: 'Birds', icon: '🐓' };
+              }
+            };
+            const info = getSpeciesInfo(sp);
+            return (
+              <button
+                key={sp}
+                type="button"
+                onClick={() => setSelectedSpecies(sp)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold text-center flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
+                  isActive 
+                    ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/10' 
+                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary/40'
+                }`}
+              >
+                <span>{info.icon}</span>
+                <span>{info.label}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {submitted && riskResult && (
@@ -143,7 +206,9 @@ export default function FlockHealthPage() {
           
           {/* Deaths Counter Widget */}
           <div className="border border-border rounded-xl p-5 bg-secondary/30 flex flex-col items-center justify-between text-center">
-            <span className="text-xs font-bold text-muted-foreground">Deaths Today</span>
+            <span className="text-xs font-bold text-muted-foreground">
+              {selectedSpecies === 'POULTRY' ? 'Deaths Today' : selectedSpecies === 'CATTLE' ? 'Cattle Deaths Today' : selectedSpecies === 'GOAT' ? 'Goat Deaths Today' : 'Pig Deaths Today'}
+            </span>
             
             <div className="my-4 flex items-center gap-6">
               <button
@@ -172,7 +237,9 @@ export default function FlockHealthPage() {
 
           {/* Sickness Counter Widget */}
           <div className="border border-border rounded-xl p-5 bg-secondary/30 flex flex-col items-center justify-between text-center">
-            <span className="text-xs font-bold text-muted-foreground">Sick Birds Today</span>
+            <span className="text-xs font-bold text-muted-foreground">
+              {selectedSpecies === 'POULTRY' ? 'Sick Birds Today' : selectedSpecies === 'CATTLE' ? 'Sick Cows Today' : selectedSpecies === 'GOAT' ? 'Sick Goats Today' : 'Sick Pigs Today'}
+            </span>
             
             <div className="my-4 flex items-center gap-6">
               <button
@@ -204,7 +271,9 @@ export default function FlockHealthPage() {
         {/* Technical Form fields */}
         <div className="grid gap-4 sm:grid-cols-3 border-t border-border pt-6">
           <div>
-            <label className="text-xs font-bold text-muted-foreground block mb-1">Total Animals</label>
+            <label className="text-xs font-bold text-muted-foreground block mb-1">
+              {selectedSpecies === 'POULTRY' ? 'Total Birds' : selectedSpecies === 'CATTLE' ? 'Total Cows' : selectedSpecies === 'GOAT' ? 'Total Goats' : 'Total Pigs'}
+            </label>
             <input
               type="number"
               value={totalAnimals}

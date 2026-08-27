@@ -39,6 +39,13 @@ enum ReportStatus {
   RESOLVED
 }
 
+enum Species {
+  POULTRY
+  CATTLE
+  GOAT
+  PIG
+}
+
 model User {
   id             String          @id @default(uuid())
   name           String
@@ -68,6 +75,7 @@ model Farm {
   state             String
   biosecurityScore  Float              @default(100.0)
   riskLevel         RiskLevel          @default(LOW)
+  species           Species            @default(POULTRY)
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
   biosecurityLogs   BiosecurityRecord[]
@@ -103,6 +111,7 @@ model HealthRecord {
   healthyCount   Int
   sickCount      Int
   mortalityCount Int
+  species        Species            @default(POULTRY)
   symptoms       SymptomInRecord[]
   notes          String?
   createdAt      DateTime           @default(now())
@@ -183,6 +192,7 @@ model DiseaseReport {
   farm          Farm              @relation(fields: [farmId], references: [id])
   reportedById  String
   reporter      User              @relation("ReportedBy", fields: [reportedById], references: [id])
+  species       Species           @default(POULTRY)
   symptoms      SymptomInReport[]
   notes         String?
   photoUrl      String?
