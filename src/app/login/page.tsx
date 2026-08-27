@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Sprout, User, ShieldCheck, Landmark, Mail, Phone } from 'lucide-react';
+import { Sprout, User, ShieldCheck, Landmark, Mail, Phone, Lock, Eye, EyeOff } from 'lucide-react';
 import { ThemeToggle } from '@/components/layout/theme-toggle';
 import Link from 'next/link';
 
@@ -16,6 +16,8 @@ export default function LoginPage() {
   const [role, setRole] = useState<RoleType>('farmer');
   const [farmType, setFarmType] = useState<FarmType>('POULTRY');
   const [emailOrMobile, setEmailOrMobile] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,6 +27,17 @@ export default function LoginPage() {
 
     if (!emailOrMobile.trim()) {
       setError('Please enter a valid email address or mobile number.');
+      return;
+    }
+
+    if (!password.trim()) {
+      setError(role === 'farmer' ? 'Please enter your 4-digit Access PIN.' : 'Please enter your password.');
+      return;
+    }
+
+    // Quick sandbox validation helper
+    if (role === 'farmer' && password.trim().length < 4) {
+      setError('Farmer Access PIN must be at least 4 digits (e.g., 1234).');
       return;
     }
 
@@ -60,7 +73,7 @@ export default function LoginPage() {
             <Sprout className="h-10 w-10 text-primary mx-auto" />
             <h2 className="text-xl font-bold tracking-tight mt-3">Portal Authentication</h2>
             <p className="text-xs text-muted-foreground mt-1">
-              Sign in using your email address or mobile number to enter the platform
+              Sign in using your credentials to enter the platform
             </p>
           </div>
 
@@ -82,7 +95,11 @@ export default function LoginPage() {
                     <button
                       key={r}
                       type="button"
-                      onClick={() => setRole(r)}
+                      onClick={() => {
+                        setRole(r);
+                        setPassword('');
+                        setError(null);
+                      }}
                       className={`py-2 px-1.5 rounded-lg border text-xs font-bold text-center flex flex-col items-center gap-1.5 cursor-pointer transition-all ${
                         isSel 
                           ? 'border-primary bg-primary/5 text-primary' 
@@ -149,6 +166,39 @@ export default function LoginPage() {
               </div>
             </div>
 
+            {/* Password or PIN Input */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">
+                {role === 'farmer' ? '4-Digit Access PIN / Passcode' : 'Account Password'}
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
+                  <Lock size={16} />
+                </div>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  maxLength={role === 'farmer' ? 6 : 30}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={role === 'farmer' ? "e.g. 1234" : "••••••••"}
+                  className="w-full bg-secondary border border-border rounded-xl pl-10 pr-10 py-2.5 text-xs font-semibold focus:outline-none focus:border-primary transition-colors"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground cursor-pointer"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+              <p className="text-[10px] text-muted-foreground italic leading-tight mt-1">
+                {role === 'farmer' 
+                  ? '🔒 Rural accessibility: Enter any 4-digit code (e.g. 1234) to sign in.' 
+                  : '🔒 Admin access: Enter standard credentials (e.g. admin123) to continue.'}
+              </p>
+            </div>
+
             <button
               type="submit"
               disabled={loading}
@@ -167,7 +217,7 @@ export default function LoginPage() {
           </div>
 
           <p className="text-[10px] text-center text-muted-foreground leading-relaxed">
-            Role authentication is linked dynamically. Mobile SMS/Email logs are routed via secure production channels.
+            Authentication is secured via end-to-end sandbox sessions. Local storage caches your settings preferences.
           </p>
         </div>
       </main>
