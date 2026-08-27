@@ -14,6 +14,7 @@ export const translations = {
     riskAlerts: "Risk Alerts",
     settings: "Settings",
     exitPortal: "Exit Portal",
+    livestockDashboard: "Livestock Dashboard",
     
     // Header
     projectSubtitle: "Digital Farm Management & Epidemic Control Grid",
@@ -67,6 +68,7 @@ export const translations = {
     riskAlerts: "அபாய எச்சரிக்கைகள்",
     settings: "அமைப்புகள்",
     exitPortal: "வெளியேறு",
+    livestockDashboard: "கால்நடை முகப்பு",
     
     projectSubtitle: "டிஜிட்டல் பண்ணை மேலாண்மை மற்றும் நோய் கட்டுப்பாட்டு அமைப்பு",
     evaluate: "மதிப்பீடு:",
@@ -117,6 +119,7 @@ export const translations = {
     riskAlerts: "അപായ മുന്നറിയിപ്പുകൾ",
     settings: "ക്രമീകരണങ്ങൾ",
     exitPortal: "പുറത്തു കടക്കുക",
+    livestockDashboard: "ലൈവ്സ്റ്റോക്ക് ഡാഷ്‌ബോർഡ്",
     
     projectSubtitle: "ഡിജിറ്റൽ ഫാം മാനേജ്‌മെന്റ് & പകർച്ചവ്യാധി നിയന്ത്രണ ഗ്രീഡ്",
     evaluate: "വിലയിരുത്തുക:",
@@ -167,6 +170,7 @@ export const translations = {
     riskAlerts: "जोखिम अलर्ट",
     settings: "सेटिंग्स",
     exitPortal: "बाहर निकलें",
+    livestockDashboard: "पशुधन डैशबोर्ड",
     
     projectSubtitle: "डिजिटल फार्म प्रबंधन और महामारी नियंत्रण ग्रिड",
     evaluate: "मूल्यांकन:",
@@ -217,6 +221,7 @@ export const translations = {
     riskAlerts: "धोका इशारा",
     settings: "सेटिंग्ज",
     exitPortal: "बाहेर पडा",
+    livestockDashboard: "पशुधन डॅशबोर्ड",
     
     projectSubtitle: "डिजिटल फार्म व्यवस्थापन आणि नियंत्रण प्रणाली",
     evaluate: "मूल्यांकन:",
@@ -267,6 +272,7 @@ export const translations = {
     riskAlerts: "જોખમ એલર્ટ",
     settings: "સેટિંગ્સ",
     exitPortal: "બહાર નીકળો",
+    livestockDashboard: "પશુધન ડેશબોર્ડ",
     
     projectSubtitle: "ડિજિટલ ફાર્મ મેનેજમેન્ટ અને રોગ નિયંત્રણ સિસ્ટમ",
     evaluate: "મૂલ્યાંકન:",
