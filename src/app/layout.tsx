@@ -4,8 +4,8 @@ import { LanguageProvider } from '@/components/language-provider';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'SIH25006 — Poultry Biosecurity Platform',
-  description: 'Smart India Hackathon 2025 Digital Farm Management Portal',
+  title: 'PoultryLens AI — Animal Disease & Biosecurity Platform',
+  description: 'Digital Farm Management & Biosecurity Portal for Livestock Disease Early Detection',
 };
 
 export default function RootLayout({

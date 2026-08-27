@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { HeartPulse, Plus, Minus, Check, ClipboardCheck } from 'lucide-react';
+import { HeartPulse, Plus, Minus, Check, ClipboardCheck, Mic, Volume2, Sparkles, AlertCircle } from 'lucide-react';
 import { mockFarms } from '@/mock-data';
+import { useLanguage } from '@/components/language-provider';
 
 export default function FlockHealthPage() {
   const [selectedSpecies, setSelectedSpecies] = useState<'POULTRY' | 'CATTLE' | 'GOAT' | 'PIG'>('POULTRY');
@@ -26,6 +27,162 @@ export default function FlockHealthPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [riskResult, setRiskResult] = useState<{ recordId: string; riskIndex: number; riskLevel: string; mode: string } | null>(null);
+
+  const { language } = useLanguage();
+  const [voiceActive, setVoiceActive] = useState(false);
+  const [voiceStep, setVoiceStep] = useState<number>(0);
+  const [voiceMessage, setVoiceMessage] = useState('');
+  const [listening, setListening] = useState(false);
+
+  const speakText = (text: string, callback?: () => void) => {
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = language === 'ta' ? 'ta-IN' : 'en-US';
+      utterance.onend = () => {
+        if (callback) callback();
+      };
+      window.speechSynthesis.speak(utterance);
+    } else {
+      if (callback) callback();
+    }
+  };
+
+  const listenSpeech = (callback: (text: string) => void) => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.lang = language === 'ta' ? 'ta-IN' : 'en-US';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+        
+        recognition.onstart = () => {
+          setListening(true);
+        };
+        
+        recognition.onresult = (event: any) => {
+          const text = event.results[0][0].transcript;
+          callback(text);
+        };
+        
+        recognition.onerror = (err: any) => {
+          console.error("Speech recognition error:", err);
+          setListening(false);
+          setError(language === 'ta' ? 'குரல் அங்கீகாரம் தோல்வியடைந்தது. தெளிவாகப் பேசவும்.' : 'Speech recognition failed. Try speaking clearly.');
+          setVoiceActive(false);
+        };
+        
+        recognition.onend = () => {
+          setListening(false);
+        };
+        
+        recognition.start();
+      } else {
+        setError(language === 'ta' ? 'உங்கள் உலாவியில் குரல் அங்கீகாரம் ஆதரிக்கப்படவில்லை.' : 'Browser Speech Recognition not supported.');
+        setVoiceActive(false);
+      }
+    }
+  };
+
+  const parseNumber = (text: string): number => {
+    const cleaned = text.toLowerCase().trim();
+    const wordsMap: Record<string, number> = {
+      'zero': 0, 'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5,
+      'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10,
+      'பூஜ்ஜியம்': 0, 'ஒன்று': 1, 'இரண்டு': 2, 'மூன்று': 3, 'நான்கு': 4, 'ஐந்து': 5,
+      'ஆறு': 6, 'ஏழு': 7, 'எட்டு': 8, 'ஒன்பது': 9, 'பத்து': 10
+    };
+
+    if (wordsMap[cleaned] !== undefined) {
+      return wordsMap[cleaned];
+    }
+    const match = cleaned.match(/\d+/);
+    return match ? parseInt(match[0]) : 0;
+  };
+
+  const startVoiceAssistant = () => {
+    setError(null);
+    setVoiceActive(true);
+    setVoiceStep(1);
+    
+    const welcomeText = language === 'ta'
+      ? 'குரல் உதவிக்கு வரவேற்கிறோம். இன்று பண்ணையில் எத்தனை இறப்புகள் ஏற்பட்டுள்ளன?'
+      : 'Welcome to Voice Assistant. How many animal deaths occurred today?';
+    
+    setVoiceMessage(welcomeText);
+    speakText(welcomeText, () => {
+      listenSpeech((transcript) => {
+        handleVoiceInput(1, transcript);
+      });
+    });
+  };
+
+  const handleVoiceInput = (stepNum: number, input: string) => {
+    console.log(`Step ${stepNum} received input:`, input);
+    
+    if (stepNum === 1) {
+      const val = parseNumber(input);
+      setDeathsCount(val);
+      setHealthyCount(totalAnimals - sickCount - val);
+
+      setVoiceStep(2);
+      const qText = language === 'ta'
+        ? `பதிவு செய்யப்பட்டது. இன்று எத்தனை விலங்குகள் நோய்வாய்ப்பட்டுள்ளன?`
+        : `Recorded ${val} deaths. How many sick animals did you observe today?`;
+      
+      setVoiceMessage(qText);
+      speakText(qText, () => {
+        listenSpeech((transcript) => {
+          handleVoiceInput(2, transcript);
+        });
+      });
+    } else if (stepNum === 2) {
+      const val = parseNumber(input);
+      setSickCount(val);
+      setHealthyCount(totalAnimals - val - deathsCount);
+
+      setVoiceStep(3);
+      const qText = language === 'ta'
+        ? `நோய்வாய்ப்பட்டவை பதிவு செய்யப்பட்டன. சளி, காய்ச்சல் அல்லது வயிற்றுப்போக்கு போன்ற அறிகுறிகள் ஏதேனும் உள்ளதா?`
+        : `Recorded ${val} sick cases. Please list any observed symptoms like coughing, diarrhea, or fever.`;
+      
+      setVoiceMessage(qText);
+      speakText(qText, () => {
+        listenSpeech((transcript) => {
+          handleVoiceInput(3, transcript);
+        });
+      });
+    } else if (stepNum === 3) {
+      const cleaned = input.toLowerCase();
+      const matched: string[] = [];
+      const currentSymptomsList = getSymptomsList();
+
+      currentSymptomsList.forEach((sym) => {
+        const key = sym.toLowerCase();
+        if (cleaned.includes(key)) {
+          matched.push(sym);
+        }
+      });
+
+      if (language === 'ta') {
+        if (cleaned.includes('சளி') || cleaned.includes('இருமல்')) matched.push('Cough');
+        if (cleaned.includes('காய்ச்சல்')) matched.push('Fever');
+        if (cleaned.includes('வயிற்றுப்போக்கு')) matched.push('Diarrhea');
+      }
+
+      setSymptoms(matched);
+      
+      const confirmText = language === 'ta'
+        ? `அறிகுறிகள் பதிவு செய்யப்பட்டன. உங்கள் தினசரி சுகாதாரத் தகவல் சமர்ப்பிக்கத் தயாராக உள்ளது. தயவுசெய்து சமர்ப்பி பொத்தானை அழுத்தவும்.`
+        : `Thank you. Symptoms recorded. Your daily health log is compiled and ready to submit. Please click the submit button.`;
+
+      setVoiceMessage(confirmText);
+      speakText(confirmText);
+      setVoiceActive(false);
+      setVoiceStep(0);
+    }
+  };
 
   useEffect(() => {
     setTotalAnimals(activeFarm.totalAnimals);
@@ -136,6 +293,50 @@ export default function FlockHealthPage() {
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
+
+      {/* Voice Assistant Panel */}
+      <div className="bg-card border border-border p-4 rounded-2xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="bg-primary/10 text-primary p-2.5 rounded-xl">
+            <Mic size={20} className={listening ? 'animate-pulse text-red-500' : ''} />
+          </div>
+          <div>
+            <h3 className="text-xs font-bold text-foreground">
+              {language === 'ta' ? 'குரல் வழிகாட்டி உதவி' : 'Voice Assistant Logger'}
+            </h3>
+            <p className="text-[10px] text-muted-foreground mt-0.5">
+              {language === 'ta' 
+                ? 'உங்கள் குரல் மூலம் நேரடியாக தகவல்களைப் பதிவு செய்ய மைக் ஐகானை அழுத்தவும்.' 
+                : 'Speak to answer simple questions and auto-populate this log form.'}
+            </p>
+          </div>
+        </div>
+        
+        <button
+          type="button"
+          onClick={startVoiceAssistant}
+          disabled={voiceActive || listening}
+          className="bg-primary text-primary-foreground text-xs font-bold px-4 py-2 rounded-xl flex items-center justify-center gap-2 hover:bg-primary/95 transition-all shadow-sm active:scale-95 cursor-pointer disabled:opacity-50 shrink-0"
+        >
+          <Sparkles size={14} className="animate-spin" />
+          {language === 'ta' ? 'பேசத் தொடங்கு' : 'Start Talking'}
+        </button>
+      </div>
+
+      {voiceActive && (
+        <div className="bg-primary/10 border border-primary/20 p-4 rounded-2xl space-y-3 relative overflow-hidden">
+          <div className="flex items-center gap-2 text-xs font-bold text-primary">
+            <span className="flex h-2.5 w-2.5 relative">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+            </span>
+            {listening ? (language === 'ta' ? 'மைக் ஆன் செய்யப்பட்டுள்ளது - பேசவும்...' : 'Microphone Listening...') : (language === 'ta' ? 'உதவியாளர் பேசுகிறார்...' : 'Assistant Speaking...')}
+          </div>
+          <p className="text-xs font-semibold text-foreground leading-relaxed">
+            {voiceMessage}
+          </p>
+        </div>
+      )}
       
       {/* Title */}
       <div className="border-b border-border pb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">

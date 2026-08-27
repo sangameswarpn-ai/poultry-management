@@ -11,12 +11,45 @@ export default function FarmerSettingsPage() {
   
   const [voiceGuidance, setVoiceGuidance] = useState(false);
   const [highContrast, setHighContrast] = useState(false);
+  const [phoneReminder, setPhoneReminder] = useState(true);
+  const [phoneForCall, setPhoneForCall] = useState("+91 98765 43210");
+  const [callFrequency, setCallFrequency] = useState("weekly");
+  const [testCallStatus, setTestCallStatus] = useState<string | null>(null);
+  const [testingCall, setTestingCall] = useState(false);
   const [saved, setSaved] = useState(false);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
+  };
+
+  const handleTestCall = async () => {
+    setTestingCall(true);
+    setTestCallStatus(null);
+    try {
+      const res = await fetch('/api/reminders/voice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phoneNumber: phoneForCall,
+          language
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to place call');
+      
+      if (data.mode === 'real') {
+        setTestCallStatus(`Real outbound call placed! Twilio SID: ${data.sid}`);
+      } else {
+        setTestCallStatus(`Simulated Call Dispatched! Voice TTS speaks: "${data.speechText}"`);
+      }
+    } catch (err: any) {
+      console.error(err);
+      setTestCallStatus(`Call error: ${err.message}`);
+    } finally {
+      setTestingCall(false);
+    }
   };
 
   const languagesList: Array<{ code: LanguageCode; label: string }> = [
@@ -186,6 +219,80 @@ export default function FarmerSettingsPage() {
               className="w-5 h-5 rounded text-primary focus:ring-primary mt-1 shrink-0 cursor-pointer"
             />
           </div>
+        </div>
+
+        {/* Automated Voice Call Reminders */}
+        <div className="border-t border-border pt-6 space-y-4">
+          <h3 className="text-xs font-bold text-muted-foreground flex items-center gap-2">
+            <Volume2 size={16} className="text-primary" />
+            {language === 'ta' ? 'தானியங்கி அழைப்பு நினைவூட்டல்கள்' : 'Automated Outbound Voice Reminders'}
+          </h3>
+
+          <div className="flex items-start justify-between gap-4 p-3 border border-border rounded-xl">
+            <div className="space-y-0.5">
+              <label htmlFor="phoneReminder" className="text-xs font-bold text-foreground cursor-pointer">
+                {language === 'ta' ? 'குரல் அழைப்பு நினைவூட்டலை இயக்கு' : 'Enable Outbound Call Reminders'}
+              </label>
+              <p className="text-[10px] text-muted-foreground leading-relaxed">
+                {language === 'ta' 
+                  ? 'வாராந்திர தரவை நீங்கள் பதிவு செய்யவில்லை என்றால் தானியங்கி அழைப்பைத் தொடங்கும்.' 
+                  : 'Triggers automated phone call alerts if weekly health logs are missing.'}
+              </p>
+            </div>
+            <input
+              type="checkbox"
+              id="phoneReminder"
+              checked={phoneReminder}
+              onChange={e => setPhoneReminder(e.target.checked)}
+              className="w-5 h-5 rounded text-primary focus:ring-primary mt-1 shrink-0 cursor-pointer"
+            />
+          </div>
+
+          {phoneReminder && (
+            <div className="grid gap-4 sm:grid-cols-2 p-3 bg-secondary/20 border border-border rounded-xl">
+              <div>
+                <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1">
+                  {language === 'ta' ? 'தொலைபேசி எண்' : 'Farmer Mobile Number'}
+                </label>
+                <input
+                  type="text"
+                  value={phoneForCall}
+                  onChange={(e) => setPhoneForCall(e.target.value)}
+                  className="w-full bg-card border border-border rounded-lg px-3 py-2 text-xs font-semibold focus:outline-none focus:border-primary"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1">
+                  {language === 'ta' ? 'அழைப்பு அதிர்வெண்' : 'Call Trigger Alert Frequency'}
+                </label>
+                <select
+                  value={callFrequency}
+                  onChange={(e) => setCallFrequency(e.target.value)}
+                  className="w-full bg-card border border-border rounded-lg px-3 py-2 text-xs font-semibold focus:outline-none focus:border-primary"
+                >
+                  <option value="weekly">{language === 'ta' ? 'வாரம் ஒருமுறை (ஞாயிறு)' : 'Weekly if logs missing'}</option>
+                  <option value="3days">{language === 'ta' ? 'ஒவ்வொரு 3 நாட்களுக்கு ஒருமுறை' : 'Every 3 Days'}</option>
+                  <option value="daily">{language === 'ta' ? 'தினசரி' : 'Daily'}</option>
+                </select>
+              </div>
+
+              <div className="sm:col-span-2 pt-2 border-t border-border/40">
+                <button
+                  type="button"
+                  onClick={handleTestCall}
+                  disabled={testingCall}
+                  className="w-full bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 font-bold py-2 rounded-lg text-xs transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  {testingCall ? 'Placing Voice Call...' : 'Test Outbound Reminder Call'}
+                </button>
+                {testCallStatus && (
+                  <p className="mt-2 text-[10px] bg-card p-2 border border-border rounded text-muted-foreground font-mono leading-relaxed">
+                    {testCallStatus}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Dynamic preview block */}
