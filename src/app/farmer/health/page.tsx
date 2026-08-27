@@ -242,11 +242,17 @@ export default function FlockHealthPage() {
     setRiskResult(null);
 
     try {
+      const customFarmId = localStorage.getItem('sih_custom_farm_id');
+      const customSpecies = localStorage.getItem('sih_selected_species');
+      const targetFarmId = (customFarmId && customSpecies === selectedSpecies)
+        ? customFarmId
+        : activeFarm.id;
+
       const res = await fetch('/api/health-logs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          farmId: activeFarm.id,
+          farmId: targetFarmId,
           totalAnimals,
           healthyCount,
           sickCount,

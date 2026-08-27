@@ -66,7 +66,13 @@ export default function FarmerDashboard() {
   useEffect(() => {
     setLoading(true);
     setError(null);
-    const farmId = speciesFarms[selectedSpecies];
+    
+    const customFarmId = localStorage.getItem('sih_custom_farm_id');
+    const customSpecies = localStorage.getItem('sih_selected_species');
+    const farmId = (customFarmId && customSpecies === selectedSpecies)
+      ? customFarmId
+      : speciesFarms[selectedSpecies];
+
     fetch(`/api/farms/${farmId}`)
       .then(res => {
         if (!res.ok) throw new Error('Failed to load farm details');

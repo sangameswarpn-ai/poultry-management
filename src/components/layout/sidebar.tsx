@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { 
@@ -26,6 +27,13 @@ export function Sidebar({ role, isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useTranslation();
+
+  const [customName, setCustomName] = useState('');
+
+  useEffect(() => {
+    const name = localStorage.getItem('sih_farmer_name');
+    if (name) setCustomName(name);
+  }, []);
 
   // Define navigation items dynamically with translations
   const menuItems = {
@@ -121,10 +129,10 @@ export function Sidebar({ role, isOpen, onClose }: SidebarProps) {
             </div>
             <div className="truncate text-xs">
               <p className="font-bold text-foreground truncate">
-                {role === 'farmer' ? 'Ramesh Kumar' : role === 'officer' ? 'Dr. Amit Patel' : 'Director Admin'}
+                {role === 'farmer' ? (customName || 'Ramesh Kumar') : role === 'officer' ? 'Dr. Amit Patel' : 'Director Admin'}
               </p>
               <p className="text-[10px] text-muted-foreground truncate">
-                {role === 'farmer' ? 'FRM-001' : 'District Officer'}
+                {role === 'farmer' ? (typeof window !== 'undefined' ? localStorage.getItem('sih_farmer_phone') || 'FRM-001' : 'FRM-001') : 'District Officer'}
               </p>
             </div>
           </div>
