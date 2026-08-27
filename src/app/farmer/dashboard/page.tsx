@@ -40,6 +40,7 @@ export default function FarmerDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [advisory, setAdvisory] = useState<{ title: string; message: string; severity: string; date: string } | null>(null);
+  const [clientFarmerName, setClientFarmerName] = useState('');
 
   const speciesFarms = {
     POULTRY: 'frm-1',
@@ -60,6 +61,10 @@ export default function FarmerDashboard() {
     const savedSpecies = localStorage.getItem('sih_selected_species');
     if (savedSpecies && ['POULTRY', 'CATTLE', 'GOAT', 'PIG'].includes(savedSpecies)) {
       setSelectedSpecies(savedSpecies as any);
+    }
+    const name = localStorage.getItem('sih_farmer_name');
+    if (name) {
+      setClientFarmerName(name);
     }
   }, []);
 
@@ -208,9 +213,9 @@ export default function FarmerDashboard() {
       {/* Welcome Banner */}
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between border-b border-border pb-4 bg-gradient-to-r from-emerald-500/10 to-amber-500/5 p-4 rounded-xl border">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-foreground">{t.welcome}, {farm.farmerName}! 👋</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">{t.welcome}, {clientFarmerName || farm.farmerName}! 👋</h2>
           <p className="text-xs text-muted-foreground">
-            {t.monitoringProfile} <span className="font-bold text-primary">{farm.name}</span> (ID: {farm.id})
+            {t.monitoringProfile} <span className="font-bold text-primary">{clientFarmerName ? `${clientFarmerName}'s Farm` : farm.name}</span> (ID: {farm.id})
           </p>
         </div>
         <div className="flex items-center gap-2">
