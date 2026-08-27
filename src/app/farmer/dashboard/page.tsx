@@ -12,6 +12,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
+import { useLanguage } from '@/components/language-provider';
 
 interface FarmData {
   id: string;
@@ -33,10 +34,19 @@ interface FarmData {
 
 export default function FarmerDashboard() {
   const { t } = useTranslation();
+  const { language } = useLanguage();
+  const [selectedSpecies, setSelectedSpecies] = useState<'POULTRY' | 'CATTLE' | 'GOAT' | 'PIG'>('POULTRY');
   const [farm, setFarm] = useState<FarmData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [advisory, setAdvisory] = useState<{ title: string; message: string; severity: string; date: string } | null>(null);
+
+  const speciesFarms = {
+    POULTRY: 'frm-1',
+    CATTLE: 'frm-7',
+    GOAT: 'frm-13',
+    PIG: 'frm-16'
+  };
 
   useEffect(() => {
     const saved = localStorage.getItem('sih_emergency_advisory');
@@ -52,7 +62,8 @@ export default function FarmerDashboard() {
   useEffect(() => {
     setLoading(true);
     setError(null);
-    fetch('/api/farms/frm-1')
+    const farmId = speciesFarms[selectedSpecies];
+    fetch(`/api/farms/${farmId}`)
       .then(res => {
         if (!res.ok) throw new Error('Failed to load farm details');
         return res.json();
@@ -66,7 +77,7 @@ export default function FarmerDashboard() {
         setError(err.message);
         setLoading(false);
       });
-  }, []);
+  }, [selectedSpecies]);
 
   const getRiskBadgeStyles = (level: string) => {
     switch (level) {
@@ -76,6 +87,46 @@ export default function FarmerDashboard() {
       default: return 'bg-risk-low text-white border-risk-low';
     }
   };
+
+  const getSpeciesLabels = () => {
+    const isTa = language === 'ta';
+    switch (selectedSpecies) {
+      case 'CATTLE':
+        return {
+          metrics: isTa ? "தினசரி கால்நடை அளவீடுகள் (மாடுகள்)" : "Daily Cattle Metrics",
+          size: isTa ? "மொத்த மாடுகள்" : "Total Herd Size",
+          sick: isTa ? "இன்றைய நோய்வாய்ப்பட்டவை" : "Sick Cows Today",
+          deaths: isTa ? "இன்றைய இறப்புகள்" : "Cattle Deaths Today",
+          curveTitle: isTa ? "கால்நடை இறப்பு மற்றும் நோய் வளைவு" : "Cattle Mortality & Sickness Curve"
+        };
+      case 'GOAT':
+        return {
+          metrics: isTa ? "தினசரி ஆடு அளவீடுகள்" : "Daily Goat Metrics",
+          size: isTa ? "மொத்த ஆடுகள்" : "Total Herd Size",
+          sick: isTa ? "இன்றைய நோய்வாய்ப்பட்டவை" : "Sick Goats Today",
+          deaths: isTa ? "இன்றைய இறப்புகள்" : "Goat Deaths Today",
+          curveTitle: isTa ? "ஆடு இறப்பு மற்றும் நோய் வளைவு" : "Goat Mortality & Sickness Curve"
+        };
+      case 'PIG':
+        return {
+          metrics: isTa ? "தினசரி பன்றி அளவீடுகள்" : "Daily Pig Metrics",
+          size: isTa ? "மொத்த பன்றிகள்" : "Total Swine Size",
+          sick: isTa ? "இன்றைய நோய்வாய்ப்பட்டவை" : "Sick Pigs Today",
+          deaths: isTa ? "இன்றைய இறப்புகள்" : "Pig Deaths Today",
+          curveTitle: isTa ? "பன்றி இறப்பு மற்றும் நோய் வளைவு" : "Swine Mortality & Sickness Curve"
+        };
+      default:
+        return {
+          metrics: t.dailyFlockMetrics,
+          size: t.totalFlockSize,
+          sick: t.sickBirdsToday,
+          deaths: t.deathsToday,
+          curveTitle: t.sicknessCurveTitle
+        };
+    }
+  };
+
+  const speciesLabels = getSpeciesLabels();
 
   const getRiskLabel = (level: string) => {
     switch (level) {
@@ -160,6 +211,38 @@ export default function FarmerDashboard() {
         </div>
       </div>
 
+      {/* Dynamic Livestock Species Switcher */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 select-none">
+        {(['POULTRY', 'CATTLE', 'GOAT', 'PIG'] as const).map((sp) => {
+          const isActive = selectedSpecies === sp;
+          const getSpeciesInfo = (s: string) => {
+            const isTa = language === 'ta';
+            switch (s) {
+              case 'CATTLE': return { label: isTa ? 'மாடு / கால்நடை' : 'Cows / Cattle', icon: '🐄', color: 'border-emerald-500 text-emerald-500 bg-emerald-500/5' };
+              case 'GOAT': return { label: isTa ? 'ஆடு' : 'Goats', icon: '🐐', color: 'border-emerald-500 text-emerald-500 bg-emerald-500/5' };
+              case 'PIG': return { label: isTa ? 'பன்றி' : 'Pigs', icon: '🐖', color: 'border-emerald-500 text-emerald-500 bg-emerald-500/5' };
+              default: return { label: isTa ? 'பறவை / கோழி' : 'Birds / Poultry', icon: '🐓', color: 'border-emerald-500 text-emerald-500 bg-emerald-500/5' };
+            }
+          };
+          const info = getSpeciesInfo(sp);
+          return (
+            <button
+              key={sp}
+              type="button"
+              onClick={() => setSelectedSpecies(sp)}
+              className={`p-3 rounded-xl border-2 text-xs font-bold text-center flex items-center justify-center gap-2 cursor-pointer transition-all shadow-sm active:scale-95 ${
+                isActive 
+                  ? `${info.color} border-primary text-primary` 
+                  : 'border-border bg-card text-muted-foreground hover:bg-secondary/40 hover:text-foreground'
+              }`}
+            >
+              <span className="text-base">{info.icon}</span>
+              <span className="truncate">{info.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
       {/* Grid: Health Status & Risk Card */}
       <div className="grid gap-6 md:grid-cols-3">
         {/* Risk Assessment Card */}
@@ -200,13 +283,13 @@ export default function FarmerDashboard() {
         <div className="bg-card border border-border rounded-xl p-5 flex flex-col justify-between colorful-card-accent relative overflow-hidden">
           <div className="absolute right-0 top-0 w-24 h-24 bg-gradient-to-bl from-amber-500/10 to-transparent rounded-bl-full pointer-events-none" />
           
-          <h3 className="font-bold text-sm text-foreground">{t.dailyFlockMetrics}</h3>
+          <h3 className="font-bold text-sm text-foreground">{speciesLabels.metrics}</h3>
           
           <div className="space-y-4 my-4">
             <div className="flex items-center justify-between border-b border-border/60 pb-2">
               <div className="flex items-center gap-2">
                 <HeartPulse size={16} className="text-primary" />
-                <span className="text-xs text-muted-foreground">{t.totalFlockSize}</span>
+                <span className="text-xs text-muted-foreground">{speciesLabels.size}</span>
               </div>
               <span className="text-sm font-bold text-foreground">{farm.totalAnimals.toLocaleString()}</span>
             </div>
@@ -214,7 +297,7 @@ export default function FarmerDashboard() {
             <div className="flex items-center justify-between border-b border-border/60 pb-2">
               <div className="flex items-center gap-2">
                 <ShieldAlert size={16} className="text-risk-medium animate-pulse" />
-                <span className="text-xs text-muted-foreground">{t.sickBirdsToday}</span>
+                <span className="text-xs text-muted-foreground">{speciesLabels.sick}</span>
               </div>
               <span className="text-sm font-bold text-risk-medium">{farm.sickCount}</span>
             </div>
@@ -222,7 +305,7 @@ export default function FarmerDashboard() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <ShieldAlert size={16} className="text-risk-critical" />
-                <span className="text-xs text-muted-foreground">{t.deathsToday}</span>
+                <span className="text-xs text-muted-foreground">{speciesLabels.deaths}</span>
               </div>
               <span className="text-sm font-bold text-risk-critical">{farm.mortalityCount}</span>
             </div>
@@ -308,7 +391,7 @@ export default function FarmerDashboard() {
       {/* SVG Historical Chart */}
       <div className="bg-card border border-border rounded-xl p-5 shadow-sm">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-sm text-foreground">{t.sicknessCurveTitle}</h3>
+          <h3 className="font-bold text-sm text-foreground">{speciesLabels.curveTitle}</h3>
           <span className="text-[10px] text-muted-foreground">{t.last7Days}</span>
         </div>
         
@@ -321,9 +404,15 @@ export default function FarmerDashboard() {
             <line x1="50" y1="150" x2="550" y2="150" stroke="var(--border)" />
             
             {/* Left Axis Labels */}
-            <text x="15" y="24" fill="var(--muted-foreground)" className="text-[10px]" textAnchor="middle">100</text>
-            <text x="15" y="74" fill="var(--muted-foreground)" className="text-[10px]" textAnchor="middle">50</text>
-            <text x="15" y="124" fill="var(--muted-foreground)" className="text-[10px]" textAnchor="middle">10</text>
+            <text x="15" y="24" fill="var(--muted-foreground)" className="text-[10px]" textAnchor="middle">
+              {selectedSpecies === 'CATTLE' ? '20' : selectedSpecies === 'POULTRY' ? '100' : '50'}
+            </text>
+            <text x="15" y="74" fill="var(--muted-foreground)" className="text-[10px]" textAnchor="middle">
+              {selectedSpecies === 'CATTLE' ? '10' : selectedSpecies === 'POULTRY' ? '50' : '25'}
+            </text>
+            <text x="15" y="124" fill="var(--muted-foreground)" className="text-[10px]" textAnchor="middle">
+              {selectedSpecies === 'CATTLE' ? '5' : '10'}
+            </text>
             <text x="15" y="154" fill="var(--muted-foreground)" className="text-[10px]" textAnchor="middle">0</text>
 
             {/* Sickness Line (Blue) */}

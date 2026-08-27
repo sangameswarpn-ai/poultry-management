@@ -31,7 +31,6 @@ export function Sidebar({ role, isOpen, onClose }: SidebarProps) {
   const menuItems = {
     farmer: [
       { name: t.dashboard, href: '/farmer/dashboard', icon: LayoutDashboard },
-      { name: t.livestockDashboard, href: '/farmer/animals', icon: Sprout },
       { name: t.myFarm, href: '/farmer/farm', icon: Building2 },
       { name: t.biosecurity, href: '/farmer/biosecurity', icon: ClipboardCheck },
       { name: t.healthLog, href: '/farmer/health', icon: HeartPulse },
