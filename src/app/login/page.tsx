@@ -30,14 +30,8 @@ export default function LoginPage() {
       return;
     }
 
-    if (!password.trim()) {
-      setError(role === 'farmer' ? 'Please enter your 4-digit Access PIN.' : 'Please enter your password.');
-      return;
-    }
-
-    // Quick sandbox validation helper
-    if (role === 'farmer' && password.trim().length < 4) {
-      setError('Farmer Access PIN must be at least 4 digits (e.g., 1234).');
+    if (role !== 'farmer' && !password.trim()) {
+      setError('Please enter your password.');
       return;
     }
 
@@ -166,38 +160,38 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Password or PIN Input */}
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">
-                {role === 'farmer' ? '4-Digit Access PIN / Passcode' : 'Account Password'}
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
-                  <Lock size={16} />
+            {/* Password Input (Only for Officers/Admins) */}
+            {role !== 'farmer' && (
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">
+                  Account Password
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
+                    <Lock size={16} />
+                  </div>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    maxLength={30}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full bg-secondary border border-border rounded-xl pl-10 pr-10 py-2.5 text-xs font-semibold focus:outline-none focus:border-primary transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
                 </div>
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  maxLength={role === 'farmer' ? 6 : 30}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder={role === 'farmer' ? "e.g. 1234" : "••••••••"}
-                  className="w-full bg-secondary border border-border rounded-xl pl-10 pr-10 py-2.5 text-xs font-semibold focus:outline-none focus:border-primary transition-colors"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground cursor-pointer"
-                >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
+                <p className="text-[10px] text-muted-foreground italic leading-tight mt-1">
+                  🔒 Admin access: Enter standard credentials (e.g. admin123) to continue.
+                </p>
               </div>
-              <p className="text-[10px] text-muted-foreground italic leading-tight mt-1">
-                {role === 'farmer' 
-                  ? '🔒 Rural accessibility: Enter any 4-digit code (e.g. 1234) to sign in.' 
-                  : '🔒 Admin access: Enter standard credentials (e.g. admin123) to continue.'}
-              </p>
-            </div>
+            )}
 
             <button
               type="submit"
