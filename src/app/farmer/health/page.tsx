@@ -38,7 +38,22 @@ export default function FlockHealthPage() {
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = language === 'ta' ? 'ta-IN' : 'en-US';
+      
+      if (language === 'ta') {
+        utterance.lang = 'ta-IN';
+        const voices = window.speechSynthesis.getVoices();
+        // Look for any voice starting with 'ta' or containing 'tamil'
+        const tamilVoice = voices.find(v => 
+          v.lang.toLowerCase().replace('_', '-').startsWith('ta') || 
+          v.name.toLowerCase().includes('tamil')
+        );
+        if (tamilVoice) {
+          utterance.voice = tamilVoice;
+        }
+      } else {
+        utterance.lang = 'en-US';
+      }
+
       utterance.onend = () => {
         if (callback) callback();
       };
