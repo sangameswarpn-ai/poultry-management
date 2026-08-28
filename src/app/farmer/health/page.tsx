@@ -16,10 +16,10 @@ export default function FlockHealthPage() {
     ? (mockFarms.find(f => f.id === 'frm-16') || mockFarms[0])
     : mockFarms[0];
   
-  const [totalAnimals, setTotalAnimals] = useState(activeFarm.totalAnimals);
-  const [healthyCount, setHealthyCount] = useState(activeFarm.healthyCount);
-  const [sickCount, setSickCount] = useState(activeFarm.sickCount);
-  const [deathsCount, setDeathsCount] = useState(activeFarm.mortalityCount);
+  const [totalAnimals, setTotalAnimals] = useState(100);
+  const [healthyCount, setHealthyCount] = useState(100);
+  const [sickCount, setSickCount] = useState(0);
+  const [deathsCount, setDeathsCount] = useState(0);
   
   const [symptoms, setSymptoms] = useState<string[]>([]);
   const [notes, setNotes] = useState('');
@@ -33,6 +33,20 @@ export default function FlockHealthPage() {
   const [voiceStep, setVoiceStep] = useState<number>(0);
   const [voiceMessage, setVoiceMessage] = useState('');
   const [listening, setListening] = useState(false);
+
+  useEffect(() => {
+    const savedSpecies = localStorage.getItem('sih_selected_species');
+    if (savedSpecies && ['POULTRY', 'CATTLE', 'GOAT', 'PIG'].includes(savedSpecies)) {
+      setSelectedSpecies(savedSpecies as any);
+    }
+  }, []);
+
+  useEffect(() => {
+    setTotalAnimals(activeFarm.totalAnimals);
+    setHealthyCount(activeFarm.healthyCount);
+    setSickCount(activeFarm.sickCount);
+    setDeathsCount(activeFarm.mortalityCount);
+  }, [activeFarm]);
 
   const speakText = (text: string, callback?: () => void) => {
     if (typeof window !== 'undefined' && window.speechSynthesis) {
@@ -567,7 +581,15 @@ export default function FlockHealthPage() {
             rows={3}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Describe flock feeding levels, water consumption anomalies, comb or feather discoloration..."
+            placeholder={
+              selectedSpecies === 'POULTRY'
+                ? "Describe flock feeding levels, water consumption anomalies, comb or feather discoloration..."
+                : selectedSpecies === 'CATTLE'
+                ? "Describe cattle feeding levels, milk yield anomalies, mouth or skin lesions..."
+                : selectedSpecies === 'GOAT'
+                ? "Describe goat feeding levels, weight changes, skin or respiratory anomalies..."
+                : "Describe swine feeding levels, skin blotches, breathing difficulty, lethargy details..."
+            }
             className="w-full bg-secondary border border-border rounded-lg p-3 focus:outline-none focus:border-primary text-xs leading-relaxed"
           ></textarea>
         </div>
