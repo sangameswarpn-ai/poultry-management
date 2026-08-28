@@ -39,25 +39,40 @@ export default function FlockHealthPage() {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
       
-      if (language === 'ta') {
-        utterance.lang = 'ta-IN';
-        const voices = window.speechSynthesis.getVoices();
-        // Look for any voice starting with 'ta' or containing 'tamil'
-        const tamilVoice = voices.find(v => 
-          v.lang.toLowerCase().replace('_', '-').startsWith('ta') || 
-          v.name.toLowerCase().includes('tamil')
-        );
-        if (tamilVoice) {
-          utterance.voice = tamilVoice;
+      const doSpeak = () => {
+        if (language === 'ta') {
+          utterance.lang = 'ta-IN';
+          const voices = window.speechSynthesis.getVoices();
+          const tamilVoice = voices.find(v => 
+            v.lang.toLowerCase().replace('_', '-').startsWith('ta') || 
+            v.name.toLowerCase().includes('tamil')
+          );
+          if (tamilVoice) {
+            utterance.voice = tamilVoice;
+          }
+        } else {
+          utterance.lang = 'en-US';
         }
-      } else {
-        utterance.lang = 'en-US';
-      }
 
-      utterance.onend = () => {
-        if (callback) callback();
+        utterance.onend = () => {
+          if (callback) callback();
+        };
+
+        utterance.onerror = (e) => {
+          console.warn("Speech synthesis error, starting mic fallback:", e);
+          if (callback) callback();
+        };
+
+        window.speechSynthesis.speak(utterance);
       };
-      window.speechSynthesis.speak(utterance);
+
+      if (window.speechSynthesis.getVoices().length === 0) {
+        window.speechSynthesis.onvoiceschanged = () => {
+          doSpeak();
+        };
+      } else {
+        doSpeak();
+      }
     } else {
       if (callback) callback();
     }
