@@ -310,12 +310,12 @@ export default function OfficerDashboard() {
         </div>
       </div>
 
-      {/* SIH PRESENTATION DEMO CONTROL PANEL */}
+      {/* PRESENTATION DEMO CONTROL PANEL */}
       <div className="bg-card border-2 border-primary/30 p-5 rounded-2xl shadow-md space-y-4">
         <div className="flex items-center justify-between border-b border-border pb-2">
           <h3 className="font-bold text-sm flex items-center gap-2 text-foreground">
             <Sparkles className="text-primary animate-pulse" size={18} />
-            SIH Presentation Demo Script Control Panel
+            Presentation Scenario Control Panel
           </h3>
           <button
             onClick={resetDemo}
