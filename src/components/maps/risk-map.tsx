@@ -8,13 +8,17 @@ interface RiskMapProps {
   showBuffers?: boolean;
   simMortality?: number;
   simCompliance?: number;
+  highlightClusters?: any[];
+  diseaseReports?: any[];
 }
 
 export default function RiskMap({
   filterRisk = 'ALL',
   showBuffers = false,
   simMortality = 20,
-  simCompliance = 92
+  simCompliance = 92,
+  highlightClusters = [],
+  diseaseReports = []
 }: RiskMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
@@ -149,8 +153,57 @@ export default function RiskMap({
             </div>`
           );
       });
+
+      // Draw custom disease reports
+      if (diseaseReports && diseaseReports.length > 0) {
+        diseaseReports.forEach((rep: any) => {
+          L.circleMarker([rep.lat, rep.lng], {
+            radius: 6,
+            fillColor: '#8b5cf6', // purple-500
+            color: '#ffffff',
+            weight: 1.5,
+            opacity: 1,
+            fillOpacity: 0.9,
+          })
+            .addTo(markers)
+            .bindPopup(
+              `<div style="font-family: sans-serif; font-size: 11px; padding: 2px;">
+                <b style="font-size:12px; display:block; margin-bottom:4px; color:#4c1d95;">Symptom Report</b>
+                <b>Location:</b> ${rep.village}<br/>
+                <b>Symptoms:</b> ${rep.symptoms.join(', ')}<br/>
+                <b>Status:</b> ${rep.status}<br/>
+                <b>Date:</b> ${new Date(rep.date || Date.now()).toLocaleDateString()}
+              </div>`
+            );
+        });
+      }
+
+      // Draw outbreak clusters
+      if (highlightClusters && highlightClusters.length > 0) {
+        highlightClusters.forEach((cl: any) => {
+          L.circle([cl.lat, cl.lng], {
+            radius: 5000, // 5km radius zone
+            color: '#ef4444', // red-500
+            fillColor: '#ef4444',
+            fillOpacity: 0.18,
+            weight: 1.5,
+            dashArray: '6, 6'
+          })
+            .addTo(buffers)
+            .bindPopup(
+              `<div style="font-family: sans-serif; font-size: 11px; padding: 2px;">
+                <b style="font-size:12px; display:block; margin-bottom:4px; color:#991b1b;">⚠️ OUTBREAK CLUSTER: ${cl.id}</b>
+                <b>Risk Level:</b> <span style="color:#ef4444; font-weight:bold;">${cl.riskLevel} (${cl.riskScore}/100)</span><br/>
+                <b>Status:</b> <b>${cl.status}</b><br/>
+                <b>Affected Villages:</b> ${cl.villages.join(', ')}<br/>
+                <b>Total Deaths:</b> ${cl.mortalityCount}<br/>
+                <b>Total Sick:</b> ${cl.sickCount}
+              </div>`
+            );
+        });
+      }
     }).catch(err => console.error('Leaflet layer drawing error:', err));
-  }, [mapLoaded, filterRisk, showBuffers, simMortality, simCompliance]);
+  }, [mapLoaded, filterRisk, showBuffers, simMortality, simCompliance, highlightClusters, diseaseReports]);
 
   return (
     <div className="relative w-full h-[450px] rounded-xl overflow-hidden border border-border">

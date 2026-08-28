@@ -9,6 +9,11 @@ generator client {
 
 enum Role {
   FARMER
+  FIELD_WORKER
+  VET_OFFICER
+  DISTRICT_ADMIN
+  STATE_ADMIN
+  LAB_OFFICER
   OFFICER
   ADMIN
 }
@@ -85,6 +90,8 @@ model Farm {
   visitors          Visitor[]
   diseaseReports    DiseaseReport[]
   inspections       Inspection[]
+  vaccinations      VaccinationRecord[]
+  treatments        TreatmentRecord[]
 }
 
 model BiosecurityRecord {
@@ -188,16 +195,34 @@ model Vehicle {
 
 model DiseaseReport {
   id            String            @id @default(uuid())
-  farmId        String
-  farm          Farm              @relation(fields: [farmId], references: [id])
+  farmId        String?
+  farm          Farm?             @relation(fields: [farmId], references: [id])
   reportedById  String
   reporter      User              @relation("ReportedBy", fields: [reportedById], references: [id])
+  reporterRole  Role              @default(FARMER)
   species       Species           @default(POULTRY)
   symptoms      SymptomInReport[]
   notes         String?
   photoUrl      String?
   voiceUrl      String?
   status        ReportStatus      @default(SUBMITTED)
+  
+  // Regional/Location details
+  state         String            @default("Tamil Nadu")
+  district      String            @default("Namakkal")
+  block         String?
+  village       String?
+  latitude      Float?
+  longitude     Float?
+  
+  // Link to Cluster if part of an outbreak
+  clusterId     String?
+  cluster       OutbreakCluster?  @relation(fields: [clusterId], references: [id])
+  
+  // Link to DiseaseCase
+  caseId        String?
+  case          DiseaseCase?      @relation(fields: [caseId], references: [id])
+  
   createdAt     DateTime          @default(now())
 }
 
@@ -235,3 +260,141 @@ model Notification {
   type      String // e.g. "RISK_ALERT", "COMPLIANCE_REMINDER", "GOVERNMENT_ADVISORY"
   createdAt DateTime @default(now())
 }
+
+model Village {
+  id        String   @id @default(uuid())
+  name      String
+  block     String
+  district  String
+  state     String   @default("Tamil Nadu")
+  lat       Float?
+  lng       Float?
+  createdAt DateTime @default(now())
+}
+
+model OutbreakCluster {
+  id             String          @id @default(uuid())
+  name           String          // e.g. "CL-004"
+  status         String          // "SUSPECTED", "FIELD_INVESTIGATION", "CONTAINED", "RESOLVED"
+  riskLevel      RiskLevel       @default(LOW)
+  firstReportDate DateTime
+  lastReportDate  DateTime
+  reportsCount   Int             @default(0)
+  sickCount      Int             @default(0)
+  mortalityCount Int             @default(0)
+  villages       String          // JSON-serialized string array of affected villages
+  reports        DiseaseReport[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model DiseaseCase {
+  id           String          @id @default(uuid())
+  title        String
+  status       String          // e.g. "REPORTED", "SUSPECTED", "FIELD_INVESTIGATION", "SAMPLE_COLLECTED", "LAB_REFERRED", "CONFIRMED", "RESOLVED"
+  severity     RiskLevel       @default(LOW)
+  species      Species         @default(POULTRY)
+  reports      DiseaseReport[]
+  samples      Sample[]
+  advisories   Advisory[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+model Sample {
+  id             String        @id @default(uuid())
+  caseId         String?
+  case           DiseaseCase?  @relation(fields: [caseId], references: [id])
+  sampleType     String        // e.g. "Blood", "Swab", "Fecal"
+  collectionDate DateTime      @default(now())
+  collectedBy    String
+  location       String
+  notes          String?
+  status         String        // "COLLECTED", "PACKED", "DISPATCHED", "RECEIVED_BY_LAB", "TESTING", "RESULT_AVAILABLE"
+  referrals      LabReferral[]
+  createdAt      DateTime      @default(now())
+}
+
+model Lab {
+  id        String        @id @default(uuid())
+  name      String
+  location  String
+  district  String
+  state     String        @default("Tamil Nadu")
+  referrals LabReferral[]
+  createdAt DateTime      @default(now())
+}
+
+model LabReferral {
+  id               String    @id @default(uuid())
+  sampleId         String
+  sample           Sample    @relation(fields: [sampleId], references: [id])
+  labId            String
+  lab              Lab       @relation(fields: [labId], references: [id])
+  status           String    // "SENT", "RECEIVED", "TESTING", "COMPLETED"
+  result           String?   // Test results details
+  confirmedDisease String?   // e.g. "Bird Flu", "FMD", "None"
+  referredById     String
+  referredAt       DateTime  @default(now())
+  completedAt      DateTime?
+}
+
+model VaccinationRecord {
+  id             String   @id @default(uuid())
+  farmId         String?
+  farm           Farm?    @relation(fields: [farmId], references: [id])
+  species        Species  @default(POULTRY)
+  vaccineName    String
+  dose           String
+  date           DateTime
+  nextDueDate    DateTime?
+  administeredBy String
+  batchNumber    String
+  status         String   // "COMPLETED", "OVERDUE", "SCHEDULED"
+  createdAt      DateTime @default(now())
+}
+
+model TreatmentRecord {
+  id           String   @id @default(uuid())
+  farmId       String?
+  farm           Farm?    @relation(fields: [farmId], references: [id])
+  species      Species  @default(POULTRY)
+  diagnosis    String
+  treatment    String
+  medicine     String
+  date         DateTime
+  veterinarian String
+  outcome      String   // "RECOVERED", "DECEASED", "UNDER_TREATMENT"
+  followUpDate DateTime?
+  createdAt    DateTime @default(now())
+}
+
+model Advisory {
+  id          String       @id @default(uuid())
+  caseId      String?
+  case        DiseaseCase? @relation(fields: [caseId], references: [id])
+  title       String
+  message     String
+  severity    String       // "LOW", "MEDIUM", "HIGH", "CRITICAL"
+  language    String       // "en", "ta", "hi"
+  publishedAt DateTime     @default(now())
+}
+
+model WeatherObservation {
+  id        String   @id @default(uuid())
+  location  String
+  temp      Float
+  humidity  Float
+  rainfall  Float
+  date      DateTime @default(now())
+}
+
+model SyncQueue {
+  id        String   @id @default(uuid())
+  payload   String   // JSON string
+  type      String   // "DISEASE_REPORT", "HEALTH_LOG", etc.
+  status    String   // "PENDING", "SYNCED", "FAILED"
+  error     String?
+  createdAt DateTime @default(now())
+}
+

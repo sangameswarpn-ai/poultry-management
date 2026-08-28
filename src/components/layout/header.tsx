@@ -9,7 +9,7 @@ import { useLanguage, LanguageCode } from '@/components/language-provider';
 import { useTranslation } from '@/hooks/use-translation';
 
 interface HeaderProps {
-  role: 'farmer' | 'officer' | 'admin';
+  role: 'farmer' | 'field_worker' | 'officer' | 'admin';
   onMenuToggle: () => void;
 }
 
@@ -85,6 +85,12 @@ export function Header({ role, onMenuToggle }: HeaderProps) {
             className={`px-2 py-1 rounded transition-colors ${role === 'farmer' ? 'bg-primary/10 text-primary font-bold' : 'text-muted-foreground hover:bg-secondary'}`}
           >
             {t.farmerRole}
+          </Link>
+          <Link 
+            href="/field-worker/dashboard"
+            className={`px-2 py-1 rounded transition-colors ${role === 'field_worker' ? 'bg-primary/10 text-primary font-bold' : 'text-muted-foreground hover:bg-secondary'}`}
+          >
+            Field Worker
           </Link>
           <Link 
             href="/officer/dashboard"

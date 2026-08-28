@@ -18,7 +18,7 @@ import {
 import { useTranslation } from '@/hooks/use-translation';
 
 interface SidebarProps {
-  role: 'farmer' | 'officer' | 'admin';
+  role: 'farmer' | 'field_worker' | 'officer' | 'admin';
   isOpen: boolean;
   onClose: () => void;
 }
@@ -61,6 +61,12 @@ export function Sidebar({ role, isOpen, onClose }: SidebarProps) {
       { name: 'District Stats', href: '/admin/districts', icon: ClipboardCheck },
       { name: 'Deep Analytics', href: '/admin/analytics', icon: FileText },
       { name: 'Settings', href: '/admin/settings', icon: Settings },
+    ],
+    field_worker: [
+      { name: 'Field Dashboard', href: '/field-worker/dashboard', icon: LayoutDashboard },
+      { name: 'Quick Report', href: '/field-worker/dashboard?report=true', icon: FileText },
+      { name: 'Vaccination Log', href: '/field-worker/dashboard?tab=vaccination', icon: ClipboardCheck },
+      { name: 'Treatment Log', href: '/field-worker/dashboard?tab=treatment', icon: HeartPulse },
     ]
   };
 
